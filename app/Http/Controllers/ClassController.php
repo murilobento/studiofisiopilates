@@ -136,7 +136,7 @@ class ClassController extends Controller
         $availableStudents = $this->enrollmentService->getAvailableStudentsForClass($class->id);
 
         return Inertia::render('Classes/Show', [
-            'class' => $class,
+            'classItem' => $class,
             'availableStudents' => $availableStudents,
             'can' => [
                 'update' => Auth::user()->can('update', $class),
@@ -154,12 +154,16 @@ class ClassController extends Controller
         $this->authorize('update', $class);
 
         $user = Auth::user();
+
+        // Garante que os dados do instrutor estejam carregados
+        $class->load('instructor');
+
         $instructors = $user->role === UserRole::ADMIN 
             ? User::canBeInstructors()->active()->get(['id', 'name'])
             : collect();
 
         return Inertia::render('Classes/Edit', [
-            'class' => $class,
+            'classItem' => $class,
             'instructors' => $instructors,
             'can' => [
                 'chooseInstructor' => $user->can('chooseInstructor', ClassModel::class),
@@ -200,6 +204,10 @@ class ClassController extends Controller
         }
 
         $class->update($validated);
+
+        if ($request->header('X-Inertia')) {
+            return response()->json(['success' => true])->header('X-Inertia', 'true');
+        }
 
         return redirect()->route('classes.index')
             ->with('success', 'Aula atualizada com sucesso!');

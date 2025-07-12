@@ -41,7 +41,7 @@ class ClassModel extends Model
 
     public function students(): BelongsToMany
     {
-        return $this->belongsToMany(Student::class, 'class_student')
+        return $this->belongsToMany(Student::class, 'class_student', 'class_id', 'student_id')
                     ->withPivot('status')
                     ->withTimestamps();
     }

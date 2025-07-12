@@ -45,7 +45,7 @@ class Student extends Model
 
     public function classes(): BelongsToMany
     {
-        return $this->belongsToMany(ClassModel::class, 'class_student')
+        return $this->belongsToMany(ClassModel::class, 'class_student', 'student_id', 'class_id')
                     ->withPivot('status')
                     ->withTimestamps();
     }
@@ -72,9 +72,14 @@ class Student extends Model
             return false;
         }
 
-        // Assumindo que weekly_frequency está no plano ou no student
-        $weeklyLimit = $this->plan->weekly_frequency ?? 3; // Default 3 aulas por semana
-        
+        // Usa o campo 'frequency' do plano, que representa quantas aulas por semana o aluno pode fazer
+        $weeklyLimit = $this->plan->frequency ?? 0; // 0 = ilimitado
+
+        // Se não houver limite definido, permite inscrição
+        if ($weeklyLimit === 0) {
+            return true;
+        }
+
         return $currentEnrollments < $weeklyLimit;
     }
 }

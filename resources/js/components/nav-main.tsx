@@ -32,7 +32,7 @@ export function NavMain({ items = [] }: { items: NavItem[] }) {
                 <SidebarMenu>
                     <SidebarMenuItem>
                         <SidebarMenuButton asChild tooltip={{ children: 'Agenda' }} isActive={page.url.startsWith('/classes') || page.url.startsWith('/calendar')}>
-                            <Link href="/classes" prefetch>
+                            <Link href="/calendar" prefetch>
                                 <Calendar className="mr-2" />
                                 <span>Agenda</span>
                             </Link>

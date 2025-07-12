@@ -21,15 +21,18 @@ class RoleMiddleware
         }
 
         $user = auth()->user();
-        $userRole = $user->role->value;
+        $userRole = $user->role;
 
         // Se não foi especificado nenhum role, apenas verificar se está autenticado
         if (empty($roles)) {
             return $next($request);
         }
 
+        // Converter strings para enums para comparação
+        $allowedRoles = array_map(fn($role) => UserRole::from($role), $roles);
+
         // Verificar se o usuário tem pelo menos um dos roles necessários
-        if (!in_array($userRole, $roles)) {
+        if (!in_array($userRole, $allowedRoles)) {
             abort(403, 'Acesso negado. Você não tem permissão para acessar esta área.');
         }
 

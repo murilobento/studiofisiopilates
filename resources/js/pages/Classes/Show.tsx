@@ -2,10 +2,11 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import AppLayout from '@/layouts/app-layout';
-import { Head, Link, router, useForm } from '@inertiajs/react';
+import AuthenticatedLayout from '@/layouts/app-layout';
+import { Head, Link, router } from '@inertiajs/react';
 import { ArrowLeft, Edit, Trash2, UserPlus, UserMinus, Users, Clock, Calendar } from 'lucide-react';
 import { useState } from 'react';
+import { type PageProps, type BreadcrumbItem } from '@/types';
 
 interface Student {
     id: number;
@@ -34,8 +35,8 @@ interface ClassItem {
     students: Student[];
 }
 
-interface Props {
-    class: ClassItem;
+interface Props extends PageProps {
+    classItem: ClassItem;
     availableStudents: Student[];
     can: {
         update: boolean;
@@ -44,17 +45,9 @@ interface Props {
     };
 }
 
-export default function Show({ class: classItem, availableStudents, can }: Props) {
+export default function Show({ classItem, availableStudents, can }: Props) {
     const [selectedStudentId, setSelectedStudentId] = useState<string>('');
     
-    const addStudentForm = useForm({
-        student_id: '',
-    });
-
-    const removeStudentForm = useForm({
-        student_id: '',
-    });
-
     const getStatusColor = (status: string) => {
         switch (status) {
             case 'scheduled':
@@ -70,21 +63,24 @@ export default function Show({ class: classItem, availableStudents, can }: Props
 
     const addStudent = () => {
         if (!selectedStudentId) return;
-        
-        addStudentForm.setData('student_id', selectedStudentId);
-        addStudentForm.post(`/classes/${classItem.id}/students`, {
+
+        router.post(`/classes/${classItem.id}/students`, {
+            student_id: selectedStudentId,
+        }, {
+            preserveScroll: true,
             onSuccess: () => {
                 setSelectedStudentId('');
-                addStudentForm.reset();
             },
         });
     };
 
     const removeStudent = (studentId: number) => {
-        if (confirm('Tem certeza que deseja remover este aluno da aula?')) {
-            removeStudentForm.setData('student_id', studentId.toString());
-            removeStudentForm.delete(`/classes/${classItem.id}/students`);
-        }
+        if (!confirm('Tem certeza que deseja remover este aluno da aula?')) return;
+
+        router.delete(`/classes/${classItem.id}/students`, {
+            data: { student_id: studentId },
+            preserveScroll: true,
+        });
     };
 
     const deleteClass = () => {
@@ -104,186 +100,196 @@ export default function Show({ class: classItem, availableStudents, can }: Props
     const startDateTime = formatDateTime(classItem.start_time);
     const endDateTime = formatDateTime(classItem.end_time);
 
+    const breadcrumbs: BreadcrumbItem[] = [
+        { title: 'Dashboard', href: '/dashboard' },
+        { title: 'Aulas', href: '/classes' },
+        { title: classItem.title, href: `/classes/${classItem.id}` },
+    ];
+
     return (
-        <AppLayout>
+        <AuthenticatedLayout breadcrumbs={breadcrumbs}>
             <Head title={classItem.title} />
-            
-            <div className="space-y-6">
-                <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                        <Button asChild variant="outline" size="sm">
-                            <Link href="/classes">
-                                <ArrowLeft className="h-4 w-4 mr-2" />
-                                Voltar
-                            </Link>
-                        </Button>
-                        <div>
-                            <h1 className="text-2xl font-bold">{classItem.title}</h1>
-                            <p className="text-gray-600">Detalhes da aula</p>
-                        </div>
-                    </div>
-                    <div className="flex gap-2">
-                        {can.update && (
-                            <Button asChild variant="outline">
-                                <Link href={`/classes/${classItem.id}/edit`}>
-                                    <Edit className="h-4 w-4 mr-2" />
-                                    Editar
-                                </Link>
-                            </Button>
-                        )}
-                        {can.delete && (
-                            <Button
-                                variant="outline"
-                                onClick={deleteClass}
-                                className="text-red-600 hover:text-red-700"
-                            >
-                                <Trash2 className="h-4 w-4 mr-2" />
-                                Excluir
-                            </Button>
-                        )}
-                    </div>
-                </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    {/* Informações da Aula */}
-                    <div className="lg:col-span-1">
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Informações da Aula</CardTitle>
-                            </CardHeader>
-                            <CardContent className="space-y-4">
-                                <div className="flex items-center gap-2">
-                                    <Calendar className="h-4 w-4 text-gray-500" />
-                                    <div>
-                                        <p className="font-medium">{startDateTime.date}</p>
-                                        <p className="text-sm text-gray-600">
-                                            {startDateTime.time} - {endDateTime.time}
-                                        </p>
-                                    </div>
-                                </div>
-                                
-                                <div className="flex items-center gap-2">
-                                    <Users className="h-4 w-4 text-gray-500" />
-                                    <div>
-                                        <p className="font-medium">Instrutor</p>
-                                        <p className="text-sm text-gray-600">{classItem.instructor.name}</p>
-                                    </div>
-                                </div>
-
-                                <div className="flex items-center gap-2">
-                                    <Clock className="h-4 w-4 text-gray-500" />
-                                    <div>
-                                        <p className="font-medium">Capacidade</p>
-                                        <p className="text-sm text-gray-600">
-                                            {classItem.students.length}/{classItem.max_students} alunos
-                                        </p>
-                                    </div>
-                                </div>
-
+            <div className="py-12">
+                <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
+                    <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6 text-gray-900 space-y-6">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-4">
+                                <Button asChild variant="outline" size="sm">
+                                    <Link href="/classes">
+                                        <ArrowLeft className="h-4 w-4 mr-2" />
+                                        Voltar
+                                    </Link>
+                                </Button>
                                 <div>
-                                    <p className="font-medium mb-1">Status</p>
-                                    <Badge className={getStatusColor(classItem.status.value)}>
-                                        {classItem.status.label}
-                                    </Badge>
+                                    <h1 className="text-2xl font-bold">{classItem.title}</h1>
+                                    <p className="text-gray-600">Detalhes da aula</p>
                                 </div>
-                            </CardContent>
-                        </Card>
-                    </div>
-
-                    {/* Lista de Alunos */}
-                    <div className="lg:col-span-2">
-                        <Card>
-                            <CardHeader>
-                                <div className="flex items-center justify-between">
-                                    <CardTitle>Alunos Inscritos</CardTitle>
-                                    <Badge variant="outline">
-                                        {classItem.students.length}/{classItem.max_students}
-                                    </Badge>
-                                </div>
-                            </CardHeader>
-                            <CardContent className="space-y-4">
-                                {/* Adicionar Aluno */}
-                                {can.manageStudents && availableStudents.length > 0 && classItem.students.length < classItem.max_students && (
-                                    <div className="flex gap-2 p-4 bg-gray-50 rounded-lg">
-                                        <Select
-                                            value={selectedStudentId}
-                                            onValueChange={setSelectedStudentId}
-                                        >
-                                            <SelectTrigger className="flex-1">
-                                                <SelectValue placeholder="Selecione um aluno para adicionar" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {availableStudents.map((student) => (
-                                                    <SelectItem key={student.id} value={student.id.toString()}>
-                                                        {student.name}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                        <Button
-                                            onClick={addStudent}
-                                            disabled={!selectedStudentId || addStudentForm.processing}
-                                        >
-                                            <UserPlus className="h-4 w-4 mr-2" />
-                                            Adicionar
-                                        </Button>
-                                    </div>
+                            </div>
+                            <div className="flex gap-2">
+                                {can.update && (
+                                    <Button asChild variant="outline">
+                                        <Link href={`/classes/${classItem.id}/edit`}>
+                                            <Edit className="h-4 w-4 mr-2" />
+                                            Editar
+                                        </Link>
+                                    </Button>
                                 )}
+                                {can.delete && (
+                                    <Button
+                                        variant="outline"
+                                        onClick={deleteClass}
+                                        className="text-red-600 hover:text-red-700"
+                                    >
+                                        <Trash2 className="h-4 w-4 mr-2" />
+                                        Excluir
+                                    </Button>
+                                )}
+                            </div>
+                        </div>
 
-                                {/* Lista de Alunos */}
-                                <div className="space-y-2">
-                                    {classItem.students.length === 0 ? (
-                                        <p className="text-gray-500 text-center py-4">
-                                            Nenhum aluno inscrito nesta aula.
-                                        </p>
-                                    ) : (
-                                        classItem.students.map((student) => (
-                                            <div key={student.id} className="flex items-center justify-between p-3 border rounded-lg">
-                                                <div className="flex-1">
-                                                    <p className="font-medium">{student.name}</p>
-                                                    <div className="flex gap-4 text-sm text-gray-600">
-                                                        <span>{student.email}</span>
-                                                        {student.phone && <span>{student.phone}</span>}
-                                                        {student.plan && <span>Plano: {student.plan.description}</span>}
-                                                    </div>
-                                                </div>
-                                                {can.manageStudents && (
-                                                    <Button
-                                                        variant="outline"
-                                                        size="sm"
-                                                        onClick={() => removeStudent(student.id)}
-                                                        disabled={removeStudentForm.processing}
-                                                        className="text-red-600 hover:text-red-700"
-                                                    >
-                                                        <UserMinus className="h-4 w-4" />
-                                                    </Button>
-                                                )}
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                            {/* Informações da Aula */}
+                            <div className="lg:col-span-1">
+                                <Card>
+                                    <CardHeader>
+                                        <CardTitle>Informações da Aula</CardTitle>
+                                    </CardHeader>
+                                    <CardContent className="space-y-4">
+                                        <div className="flex items-center gap-2">
+                                            <Calendar className="h-4 w-4 text-gray-500" />
+                                            <div>
+                                                <p className="font-medium">{startDateTime.date}</p>
+                                                <p className="text-sm text-gray-600">
+                                                    {startDateTime.time} - {endDateTime.time}
+                                                </p>
                                             </div>
-                                        ))
-                                    )}
-                                </div>
+                                        </div>
+                                        
+                                        <div className="flex items-center gap-2">
+                                            <Users className="h-4 w-4 text-gray-500" />
+                                            <div>
+                                                <p className="font-medium">Instrutor</p>
+                                                <p className="text-sm text-gray-600">{classItem.instructor.name}</p>
+                                            </div>
+                                        </div>
 
-                                {/* Mensagens de limite */}
-                                {classItem.students.length >= classItem.max_students && (
-                                    <div className="bg-yellow-50 border border-yellow-200 p-3 rounded-lg">
-                                        <p className="text-yellow-800 text-sm">
-                                            Esta aula atingiu a capacidade máxima de alunos.
-                                        </p>
-                                    </div>
-                                )}
+                                        <div className="flex items-center gap-2">
+                                            <Clock className="h-4 w-4 text-gray-500" />
+                                            <div>
+                                                <p className="font-medium">Capacidade</p>
+                                                <p className="text-sm text-gray-600">
+                                                    {classItem.students.length}/{classItem.max_students} alunos
+                                                </p>
+                                            </div>
+                                        </div>
 
-                                {can.manageStudents && availableStudents.length === 0 && classItem.students.length < classItem.max_students && (
-                                    <div className="bg-gray-50 border p-3 rounded-lg">
-                                        <p className="text-gray-600 text-sm">
-                                            Não há alunos disponíveis para adicionar nesta aula.
-                                        </p>
-                                    </div>
-                                )}
-                            </CardContent>
-                        </Card>
+                                        <div>
+                                            <p className="font-medium mb-1">Status</p>
+                                            <Badge className={getStatusColor(classItem.status.value)}>
+                                                {classItem.status.label}
+                                            </Badge>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            </div>
+
+                            {/* Lista de Alunos */}
+                            <div className="lg:col-span-2">
+                                <Card>
+                                    <CardHeader>
+                                        <div className="flex items-center justify-between">
+                                            <CardTitle>Alunos Inscritos</CardTitle>
+                                            <Badge variant="outline">
+                                                {classItem.students.length}/{classItem.max_students}
+                                            </Badge>
+                                        </div>
+                                    </CardHeader>
+                                    <CardContent className="space-y-4">
+                                        {/* Adicionar Aluno */}
+                                        {can.manageStudents && availableStudents.length > 0 && classItem.students.length < classItem.max_students && (
+                                            <div className="flex gap-2 p-4 bg-gray-50 rounded-lg">
+                                                <Select
+                                                    value={selectedStudentId}
+                                                    onValueChange={setSelectedStudentId}
+                                                >
+                                                    <SelectTrigger className="flex-1">
+                                                        <SelectValue placeholder="Selecione um aluno para adicionar" />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        {availableStudents.map((student) => (
+                                                            <SelectItem key={student.id} value={student.id.toString()}>
+                                                                {student.name}
+                                                            </SelectItem>
+                                                        ))}
+                                                    </SelectContent>
+                                                </Select>
+                                                <Button
+                                                    onClick={addStudent}
+                                                    disabled={!selectedStudentId}
+                                                >
+                                                    <UserPlus className="h-4 w-4 mr-2" />
+                                                    Adicionar
+                                                </Button>
+                                            </div>
+                                        )}
+
+                                        {/* Lista de Alunos */}
+                                        <div className="space-y-2">
+                                            {classItem.students.length === 0 ? (
+                                                <p className="text-gray-500 text-center py-4">
+                                                    Nenhum aluno inscrito nesta aula.
+                                                </p>
+                                            ) : (
+                                                classItem.students.map((student) => (
+                                                    <div key={student.id} className="flex items-center justify-between p-3 border rounded-lg">
+                                                        <div className="flex-1">
+                                                            <p className="font-medium">{student.name}</p>
+                                                            <div className="flex gap-4 text-sm text-gray-600">
+                                                                <span>{student.email}</span>
+                                                                {student.phone && <span>{student.phone}</span>}
+                                                                {student.plan && <span>Plano: {student.plan.description}</span>}
+                                                            </div>
+                                                        </div>
+                                                        {can.manageStudents && (
+                                                            <Button
+                                                                variant="outline"
+                                                                size="sm"
+                                                                onClick={() => removeStudent(student.id)}
+                                                                
+                                                                className="text-red-600 hover:text-red-700"
+                                                            >
+                                                                <UserMinus className="h-4 w-4" />
+                                                            </Button>
+                                                        )}
+                                                    </div>
+                                                ))
+                                            )}
+                                        </div>
+
+                                        {/* Mensagens de limite */}
+                                        {classItem.students.length >= classItem.max_students && (
+                                            <div className="bg-yellow-50 border border-yellow-200 p-3 rounded-lg">
+                                                <p className="text-yellow-800 text-sm">
+                                                    Esta aula atingiu a capacidade máxima de alunos.
+                                                </p>
+                                            </div>
+                                        )}
+
+                                        {can.manageStudents && availableStudents.length === 0 && classItem.students.length < classItem.max_students && (
+                                            <div className="bg-gray-50 border p-3 rounded-lg">
+                                                <p className="text-gray-600 text-sm">
+                                                    Não há alunos disponíveis para adicionar nesta aula.
+                                                </p>
+                                            </div>
+                                        )}
+                                    </CardContent>
+                                </Card>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
-        </AppLayout>
+        </AuthenticatedLayout>
     );
 } 

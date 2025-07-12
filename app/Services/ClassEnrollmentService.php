@@ -151,7 +151,7 @@ class ClassEnrollmentService
         $enrolledStudentIds = $class->students->pluck('id')->toArray();
         $weekStart = $class->start_time->copy()->startOfWeek();
 
-        return Student::where('status', true)
+        return Student::whereIn('status', [true, 1, 'ativo'])
             ->whereNotIn('id', $enrolledStudentIds)
             ->get()
             ->filter(function ($student) use ($class) {
