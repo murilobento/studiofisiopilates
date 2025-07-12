@@ -121,17 +121,8 @@ export default function Calendar({ instructors, can }: CalendarProps) {
             }).catch(() => info.revert());
         },
         eventContent: (arg: any) => {
-            const event = arg.event;
-            const props = event.extendedProps;
-            
             return {
-                html: `
-                    <div class="p-1 text-xs">
-                        <div class="font-medium truncate">${event.title}</div>
-                        <div class="text-xs opacity-75">${props.instructor}</div>
-                        <div class="text-xs opacity-75">${props.enrolled_count}/${props.max_students} alunos</div>
-                    </div>
-                `
+                html: `<div class="flex items-center justify-center w-full h-full text-xs">Ver detalhes</div>`
             };
         },
     };

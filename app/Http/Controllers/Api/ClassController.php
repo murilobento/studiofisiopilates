@@ -60,6 +60,8 @@ class ClassController extends Controller
                     'enrolled_count' => $class->students->count(),
                     'max_students' => $class->max_students,
                     'has_space' => $class->hasSpace(),
+                    // Lista dos nomes dos alunos para exibir no calendário
+                    'students' => $class->students->pluck('name')->toArray(),
                 ],
             ];
         });
