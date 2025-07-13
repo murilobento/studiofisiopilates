@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { DateTimePicker } from '@/components/ui/datetime-picker';
 import { ArrowLeft } from 'lucide-react';
 import { FormEventHandler } from 'react';
 import { PageProps } from '@/types';
@@ -87,7 +88,7 @@ export default function Edit(props: any) {
             <Head title={`Editar ${classItem.title}`} />
             
             <div className="py-12">
-                <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
+                <div className="flex h-full flex-1 flex-col gap-4 p-4 sm:gap-6 sm:p-6">
                     <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                         <div className="p-6 text-gray-900">
                             <div className="flex items-center justify-between mb-6">
@@ -190,11 +191,10 @@ export default function Edit(props: any) {
                                         <Label htmlFor="start_time" className="block text-sm font-medium text-gray-700">
                                             Data e Hora de Início *
                                         </Label>
-                                        <Input
-                                            id="start_time"
-                                            type="datetime-local"
+                                        <DateTimePicker
                                             value={data.start_time}
-                                            onChange={(e) => setData('start_time', e.target.value)}
+                                            onChange={(datetime) => setData('start_time', datetime)}
+                                            placeholder="Selecione data e hora de início"
                                             className={`mt-1 ${errors.start_time ? 'border-red-500' : ''}`}
                                         />
                                         {errors.start_time && (
@@ -207,12 +207,11 @@ export default function Edit(props: any) {
                                         <Label htmlFor="end_time" className="block text-sm font-medium text-gray-700">
                                             Data e Hora de Fim *
                                         </Label>
-                                        <Input
-                                            id="end_time"
-                                            type="datetime-local"
+                                        <DateTimePicker
                                             value={data.end_time}
-                                            onChange={(e) => setData('end_time', e.target.value)}
-                                            min={data.start_time}
+                                            onChange={(datetime) => setData('end_time', datetime)}
+                                            placeholder="Selecione data e hora de fim"
+                                            minDate={data.start_time ? new Date(data.start_time) : undefined}
                                             className={`mt-1 ${errors.end_time ? 'border-red-500' : ''}`}
                                         />
                                         {errors.end_time && (

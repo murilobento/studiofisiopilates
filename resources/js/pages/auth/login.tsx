@@ -1,4 +1,4 @@
-import { Head, useForm } from '@inertiajs/react';
+import { Head, useForm, Link } from '@inertiajs/react';
 import { LoaderCircle } from 'lucide-react';
 import { FormEventHandler } from 'react';
 
@@ -95,11 +95,15 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                         Entrar
                     </Button>
                 </div>
-
-
             </form>
 
             {status && <div className="mb-4 text-center text-sm font-medium text-green-600">{status}</div>}
+
+            <div className="text-center text-sm text-muted-foreground">
+                <Link href="/" className="hover:text-foreground transition-colors">
+                    ← Voltar ao início
+                </Link>
+            </div>
         </AuthLayout>
     );
 }

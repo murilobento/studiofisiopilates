@@ -1,17 +1,21 @@
 import React, { useEffect } from 'react';
 import AuthenticatedLayout from '@/layouts/app-layout';
-import { Head, useForm } from '@inertiajs/react';
+import { Head, useForm, router } from '@inertiajs/react';
 import { PageProps } from '@/types';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
 import InputError from '@/components/input-error';
-import PrimaryButton from '@/components/primary-button';
 import CpfInput from '@/components/cpf-input';
 import CepInput from '@/components/cep-input-component';
+import { Save, ArrowLeft, Trash2 } from 'lucide-react';
 import { type BreadcrumbItem } from '@/types';
+import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import axios from 'axios';
 
 interface Plan {
     id: number;
@@ -124,11 +128,17 @@ const Edit: React.FC<StudentsEditProps> = ({ auth, student, plans, instructors, 
         <AuthenticatedLayout breadcrumbs={breadcrumbs}>
             <Head title="Editar Aluno" />
 
-            <div className="py-12">
-                <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
-                    <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                        <div className="p-6 text-gray-900">
-                            <h3 className="text-lg font-medium text-gray-900 mb-4">Editar Aluno</h3>
+            <div className="flex h-full flex-1 flex-col gap-4 p-4 sm:gap-6 sm:p-6">
+                {/* Header */}
+                <div className="flex flex-col space-y-2">
+                    <h1 className="text-2xl font-bold tracking-tight">Editar Aluno</h1>
+                    <p className="text-muted-foreground">
+                        Atualize as informações do aluno
+                    </p>
+                </div>
+                
+                <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+                    <div className="p-6 text-gray-900">
                             <form onSubmit={submit} className="mt-6 space-y-6">
                                 {/* Informações Básicas */}
                                 <div className="border-b pb-6">
@@ -479,16 +489,78 @@ const Edit: React.FC<StudentsEditProps> = ({ auth, student, plans, instructors, 
                                     </div>
                                 </div>
 
-                                <div className="flex items-center gap-4">
-                                    <PrimaryButton disabled={processing}>Atualizar Aluno</PrimaryButton>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </AuthenticatedLayout>
-    );
+                                                    {/* Botões de Ação */}
+                    <Card>
+                        <CardContent className="pt-6">
+                            <div className="flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-center">
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    asChild
+                                    size="sm"
+                                >
+                                    <a href="/students">
+                                        <ArrowLeft className="h-4 w-4 mr-2" />
+                                        Cancelar
+                                    </a>
+                                </Button>
+                                <div className="flex flex-col sm:flex-row gap-3">
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        onClick={() => reset()}
+                                        size="sm"
+                                    >
+                                        Desfazer
+                                    </Button>
+                                    <Button type="submit" disabled={processing} size="sm">
+                                        <Save className="h-4 w-4 mr-2" />
+                                        {processing ? 'Salvando...' : 'Atualizar Aluno'}
+                                    </Button>
+                                    <AlertDialog>
+                                        <AlertDialogTrigger asChild>
+                                            <Button
+                                                type="button"
+                                                variant="destructive"
+                                                size="sm"
+                                            >
+                                                <Trash2 className="h-4 w-4 mr-2" />
+                                                Excluir
+                                            </Button>
+                                        </AlertDialogTrigger>
+                                        <AlertDialogContent>
+                                            <AlertDialogHeader>
+                                                <AlertDialogTitle>Tem certeza?</AlertDialogTitle>
+                                                <AlertDialogDescription>
+                                                    Esta ação não pode ser desfeita. Isso excluirá permanentemente o aluno.
+                                                </AlertDialogDescription>
+                                            </AlertDialogHeader>
+                                            <AlertDialogFooter>
+                                                <AlertDialogAction onClick={() => reset()}>Cancelar</AlertDialogAction>
+                                                <AlertDialogAction onClick={() => {
+                                                    if (window.confirm('Tem certeza que deseja excluir este aluno?')) {
+                                                        router.delete(route('students.destroy', student.id), {
+                                                            preserveScroll: true,
+                                                            onError: (errors) => {
+                                                                console.error('Erro ao excluir aluno:', errors);
+                                                                alert('Erro ao excluir aluno.');
+                                                            },
+                                                         });
+                                                     }
+                                                 }}>Excluir</AlertDialogAction>
+                                             </AlertDialogFooter>
+                                         </AlertDialogContent>
+                                     </AlertDialog>
+                                 </div>
+                             </div>
+                         </CardContent>
+                     </Card>
+                 </form>
+             </div>
+         </div>
+     </div>
+ </AuthenticatedLayout>
+ );
 };
 
 export default Edit;

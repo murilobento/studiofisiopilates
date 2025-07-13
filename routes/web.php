@@ -20,6 +20,7 @@ Route::resource('students', \App\Http\Controllers\StudentController::class)->mid
 // Classes routes
 Route::middleware(['auth', 'verified', 'active', 'role:admin,instructor'])->group(function () {
     Route::resource('classes', \App\Http\Controllers\ClassController::class);
+    Route::resource('recurring-classes', \App\Http\Controllers\RecurringClassController::class);
     Route::get('calendar', [\App\Http\Controllers\ClassController::class, 'calendar'])->name('classes.calendar');
     Route::post('classes/{class}/students', [\App\Http\Controllers\ClassController::class, 'addStudent'])->name('classes.add-student');
     Route::delete('classes/{class}/students', [\App\Http\Controllers\ClassController::class, 'removeStudent'])->name('classes.remove-student');

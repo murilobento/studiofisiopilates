@@ -2,12 +2,13 @@ import { SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, Side
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { type NavItem } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
-import { LayoutGrid, CirclePlus, CircleDollarSign, UserRoundPlus, UserCheck, Calendar, ChevronDown } from 'lucide-react';
+import { LayoutGrid, CirclePlus, CircleDollarSign, UserRoundPlus, UserCheck, Calendar, ChevronDown, Clock, CalendarPlus } from 'lucide-react';
 import { useState } from 'react';
 
 export function NavMain({ items = [] }: { items: NavItem[] }) {
     const page = usePage();
     const [isCadastrosOpen, setIsCadastrosOpen] = useState(false);
+    const [isAgendaOpen, setIsAgendaOpen] = useState(false);
     
     // @ts-ignore - acessar dados do usuário
     const user = page.props.auth?.user;
@@ -29,16 +30,45 @@ export function NavMain({ items = [] }: { items: NavItem[] }) {
             </SidebarGroup>
 
             <SidebarGroup className="px-2 py-0">
-                <SidebarMenu>
-                    <SidebarMenuItem>
-                        <SidebarMenuButton asChild tooltip={{ children: 'Agenda' }} isActive={page.url.startsWith('/classes') || page.url.startsWith('/calendar')}>
-                            <Link href="/calendar" prefetch>
-                                <Calendar className="mr-2" />
-                                <span>Agenda</span>
-                            </Link>
-                        </SidebarMenuButton>
-                    </SidebarMenuItem>
-                </SidebarMenu>
+                <Collapsible open={isAgendaOpen} onOpenChange={setIsAgendaOpen}>
+                    <CollapsibleTrigger asChild>
+                        <SidebarGroupLabel className="cursor-pointer hover:bg-sidebar-accent hover:text-sidebar-accent-foreground text-sm text-sidebar-foreground font-normal">
+                            <Calendar className="mr-2" />
+                            <span>Agenda</span>
+                            <ChevronDown className={`ml-auto h-4 w-4 transition-transform ${isAgendaOpen ? 'rotate-180' : ''}`} />
+                        </SidebarGroupLabel>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent>
+                        <SidebarGroupContent>
+                            <SidebarMenu>
+                                <SidebarMenuItem>
+                                    <SidebarMenuButton asChild isActive={page.url.startsWith('/calendar')} className="pl-8">
+                                        <Link href="/calendar" prefetch>
+                                            <Calendar className="mr-2" />
+                                            <span>Agenda</span>
+                                        </Link>
+                                    </SidebarMenuButton>
+                                </SidebarMenuItem>
+                                <SidebarMenuItem>
+                                    <SidebarMenuButton asChild isActive={page.url.startsWith('/recurring-classes')} className="pl-8">
+                                        <Link href="/recurring-classes" prefetch>
+                                            <Clock className="mr-2" />
+                                            <span>Aula Recorrente</span>
+                                        </Link>
+                                    </SidebarMenuButton>
+                                </SidebarMenuItem>
+                                <SidebarMenuItem>
+                                    <SidebarMenuButton asChild isActive={page.url.startsWith('/classes/create')} className="pl-8">
+                                        <Link href="/classes/create" prefetch>
+                                            <CalendarPlus className="mr-2" />
+                                            <span>Aula Avulsa</span>
+                                        </Link>
+                                    </SidebarMenuButton>
+                                </SidebarMenuItem>
+                            </SidebarMenu>
+                        </SidebarGroupContent>
+                    </CollapsibleContent>
+                </Collapsible>
             </SidebarGroup>
             
             <SidebarGroup className="px-2 py-0">

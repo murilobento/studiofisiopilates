@@ -5,6 +5,7 @@ import { PageProps } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { 
     Select, 
     SelectContent, 
@@ -27,7 +28,7 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger 
 } from '@/components/ui/dropdown-menu';
-import { MoreHorizontal, Plus, Eye, Edit, Trash2, UserCheck, UserX, Search, Filter, ChevronLeft, ChevronRight } from 'lucide-react';
+import { MoreHorizontal, Plus, Eye, Edit, Trash2, UserCheck, UserX, Search, Filter, ChevronLeft, ChevronRight, Users, Shield, GraduationCap, UserCog } from 'lucide-react';
 import SuccessAlert from '@/components/success-alert';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import {
@@ -102,6 +103,7 @@ const Index: React.FC<UsersIndexProps> = ({ auth, users, filters }) => {
 
         return () => clearTimeout(timer);
     }, [search, roleFilter, statusFilter]);
+    
     const breadcrumbs: BreadcrumbItem[] = [
         {
             title: 'Dashboard',
@@ -128,320 +130,306 @@ const Index: React.FC<UsersIndexProps> = ({ auth, users, filters }) => {
         }
     };
 
+    // Calcular estatísticas
+    const totalUsers = users.total;
+    const activeUsers = users.data.filter(user => user.is_active).length;
+    const inactiveUsers = users.data.filter(user => !user.is_active).length;
+    const adminUsers = users.data.filter(user => user.role === 'admin').length;
+    const instructorUsers = users.data.filter(user => user.role === 'instructor').length;
+
     return (
         <AuthenticatedLayout breadcrumbs={breadcrumbs}>
             <Head title="Usuários" />
 
-            <div className="py-12">
-                <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
-                    <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                        <div className="p-6 text-gray-900">
-                            <div className="flex justify-between items-center mb-6">
-                                <div>
-                                    <h3 className="text-lg font-medium text-gray-900">Usuários do Sistema</h3>
-                                    <p className="text-sm text-gray-600 mt-1">
-                                        Gerencie administradores e instrutores
-                                    </p>
-                                </div>
-                                <Link href="/users/create">
-                                    <Button>
-                                        <Plus className="h-4 w-4 mr-2" />
-                                        Novo Usuário
-                                    </Button>
-                                </Link>
-                            </div>
-
-                            {/* Mensagem de Sucesso */}
-                            {props.flash?.success && (
-                                <div className="mb-6">
-                                    <SuccessAlert message={props.flash.success} />
-                                </div>
-                            )}
-
-                            {/* Mensagem de Erro */}
-                            {props.errors?.delete && (
-                                <div className="mb-6">
-                                    <Alert className="border-red-200 bg-red-50">
-                                        <AlertDescription className="text-red-700">
-                                            {props.errors.delete}
-                                        </AlertDescription>
-                                    </Alert>
-                                </div>
-                            )}
-
-                            {/* Filtros */}
-                            <div className="bg-gray-50 border rounded-lg p-4 mb-6">
-                                <div className="flex flex-col md:flex-row gap-4">
-                                    <div className="flex-1">
-                                        <div className="relative">
-                                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                                            <Input
-                                                placeholder="Buscar por nome ou email..."
-                                                value={search}
-                                                onChange={(e) => setSearch(e.target.value)}
-                                                className="pl-10"
-                                            />
-                                        </div>
-                                    </div>
-                                    
-                                    <div className="w-full md:w-48">
-                                        <Select value={roleFilter} onValueChange={setRoleFilter}>
-                                            <SelectTrigger>
-                                                <SelectValue placeholder="Função" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="all">Todas as funções</SelectItem>
-                                                <SelectItem value="admin">Administrador</SelectItem>
-                                                <SelectItem value="instructor">Instrutor</SelectItem>
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-
-                                    <div className="w-full md:w-48">
-                                        <Select value={statusFilter} onValueChange={setStatusFilter}>
-                                            <SelectTrigger>
-                                                <SelectValue placeholder="Status" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="all">Todos os status</SelectItem>
-                                                <SelectItem value="active">Ativos</SelectItem>
-                                                <SelectItem value="inactive">Inativos</SelectItem>
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-
-                                    {(search || roleFilter !== 'all' || statusFilter !== 'all') && (
-                                        <Button
-                                            variant="outline"
-                                            onClick={() => {
-                                                setSearch('');
-                                                setRoleFilter('all');
-                                                setStatusFilter('all');
-                                            }}
-                                        >
-                                            <Filter className="h-4 w-4 mr-2" />
-                                            Limpar
-                                        </Button>
-                                    )}
-                                </div>
-                            </div>
-
-                            {users.data.length === 0 ? (
-                                <div className="text-center py-12">
-                                    <div className="text-gray-500">
-                                        <UserCheck className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                                        {(search || roleFilter !== 'all' || statusFilter !== 'all') ? (
-                                            <>
-                                                <h3 className="text-lg font-medium mb-2">Nenhum usuário encontrado</h3>
-                                                <p className="text-sm mb-6">
-                                                    Nenhum usuário corresponde aos filtros aplicados. 
-                                                    Tente ajustar os critérios de busca.
-                                                </p>
-                                                <Button
-                                                    variant="outline"
-                                                    onClick={() => {
-                                                        setSearch('');
-                                                        setRoleFilter('all');
-                                                        setStatusFilter('all');
-                                                    }}
-                                                >
-                                                    <Filter className="h-4 w-4 mr-2" />
-                                                    Limpar Filtros
-                                                </Button>
-                                            </>
-                                        ) : (
-                                            <>
-                                                <h3 className="text-lg font-medium mb-2">Nenhum usuário encontrado</h3>
-                                                <p className="text-sm mb-6">Comece criando o primeiro usuário do sistema.</p>
-                                                <Link href="/instructors/create">
-                                                    <Button>
-                                                        <Plus className="h-4 w-4 mr-2" />
-                                                        Criar Primeiro Usuário
-                                                    </Button>
-                                                </Link>
-                                            </>
-                                        )}
-                                    </div>
-                                </div>
-                            ) : (
-                                <div className="border rounded-lg">
-                                    <Table>
-                                        <TableHeader>
-                                            <TableRow>
-                                                <TableHead>Nome</TableHead>
-                                                <TableHead>Email</TableHead>
-                                                <TableHead>Função</TableHead>
-                                                <TableHead>Comissão</TableHead>
-                                                <TableHead>Alunos</TableHead>
-                                                <TableHead>Aulas</TableHead>
-                                                <TableHead>Status</TableHead>
-                                                <TableHead className="text-right">Ações</TableHead>
-                                            </TableRow>
-                                        </TableHeader>
-                                        <TableBody>
-                                            {users.data.map((instructor: Instructor) => (
-                                                <TableRow key={instructor.id}>
-                                                    <TableCell className="font-medium">
-                                                        {instructor.name}
-                                                    </TableCell>
-                                                    <TableCell>{instructor.email}</TableCell>
-                                                    <TableCell>
-                                                        <Badge 
-                                                            variant={instructor.role === 'admin' ? "default" : "secondary"}
-                                                        >
-                                                            {instructor.role === 'admin' ? 'Administrador' : 'Instrutor'}
-                                                        </Badge>
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        {instructor.commission_rate 
-                                                            ? `${instructor.commission_rate}%` 
-                                                            : '-'
-                                                        }
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        <Badge variant="outline">
-                                                            {instructor.students_count}
-                                                        </Badge>
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        <Badge variant="outline">
-                                                            {instructor.classes_count}
-                                                        </Badge>
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        <Badge 
-                                                            variant={instructor.is_active ? 'secondary' : 'destructive'}
-                                                            className={instructor.is_active ? 'bg-green-100 text-green-800 border-green-200' : ''}
-                                                        >
-                                                            {instructor.is_active ? 'Ativo' : 'Inativo'}
-                                                        </Badge>
-                                                    </TableCell>
-                                                    <TableCell className="text-right">
-                                                        <DropdownMenu>
-                                                            <DropdownMenuTrigger asChild>
-                                                                <Button variant="ghost" className="h-8 w-8 p-0">
-                                                                    <span className="sr-only">Abrir menu</span>
-                                                                    <MoreHorizontal className="h-4 w-4" />
-                                                                </Button>
-                                                            </DropdownMenuTrigger>
-                                                            <DropdownMenuContent align="end">
-                                                                <DropdownMenuItem asChild>
-                                                                    <Link href={`/users/${instructor.id}`}>
-                                                                        <Eye className="h-4 w-4 mr-2" />
-                                                                        Visualizar
-                                                                    </Link>
-                                                                </DropdownMenuItem>
-                                                                <DropdownMenuItem asChild>
-                                                                    <Link href={`/users/${instructor.id}/edit`}>
-                                                                        <Edit className="h-4 w-4 mr-2" />
-                                                                        Editar
-                                                                    </Link>
-                                                                </DropdownMenuItem>
-                                                                <DropdownMenuItem 
-                                                                    onClick={() => handleToggleStatus(instructor)}
-                                                                >
-                                                                    {instructor.is_active ? (
-                                                                        <>
-                                                                            <UserX className="h-4 w-4 mr-2" />
-                                                                            Desativar
-                                                                        </>
-                                                                    ) : (
-                                                                        <>
-                                                                            <UserCheck className="h-4 w-4 mr-2" />
-                                                                            Ativar
-                                                                        </>
-                                                                    )}
-                                                                </DropdownMenuItem>
-                                                                <DropdownMenuSeparator />
-                                                                <AlertDialog>
-                                                                    <AlertDialogTrigger asChild>
-                                                                        <DropdownMenuItem 
-                                                                            onSelect={(e) => e.preventDefault()}
-                                                                            className="text-red-600"
-                                                                        >
-                                                                            <Trash2 className="h-4 w-4 mr-2" />
-                                                                            Excluir
-                                                                        </DropdownMenuItem>
-                                                                    </AlertDialogTrigger>
-                                                                    <AlertDialogContent>
-                                                                        <AlertDialogHeader>
-                                                                            <AlertDialogTitle>Você tem certeza?</AlertDialogTitle>
-                                                                            <AlertDialogDescription>
-                                                                                Esta ação não pode ser desfeita. Isso excluirá permanentemente o usuário{' '}
-                                                                                <strong>{instructor.name}</strong> do sistema.
-                                                                            </AlertDialogDescription>
-                                                                        </AlertDialogHeader>
-                                                                        <AlertDialogFooter>
-                                                                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                                                            <AlertDialogAction 
-                                                                                onClick={() => handleDelete(instructor)}
-                                                                                className="bg-red-600 hover:bg-red-700"
-                                                                            >
-                                                                                Excluir
-                                                                            </AlertDialogAction>
-                                                                        </AlertDialogFooter>
-                                                                    </AlertDialogContent>
-                                                                </AlertDialog>
-                                                            </DropdownMenuContent>
-                                                        </DropdownMenu>
-                                                    </TableCell>
-                                                </TableRow>
-                                            ))}
-                                        </TableBody>
-                                    </Table>
-                                </div>
-                            )}
-
-                            {/* Paginação */}
-                            {users.last_page > 1 && (
-                                <div className="flex items-center justify-between mt-6">
-                                    <div className="text-sm text-gray-500">
-                                        Mostrando {users.from} até {users.to} de {users.total} resultados
-                                    </div>
-                                    
-                                    <div className="flex items-center space-x-2">
-                                        {users.links.map((link, index) => {
-                                            if (!link.url) {
-                                                return (
-                                                    <span 
-                                                        key={index}
-                                                        className="px-3 py-2 text-sm text-gray-400 cursor-not-allowed"
-                                                        dangerouslySetInnerHTML={{ __html: link.label }}
-                                                    />
-                                                );
-                                            }
-
-                                            const isActive = link.active;
-                                            const isPrevious = link.label.includes('Previous') || link.label.includes('&laquo;');
-                                            const isNext = link.label.includes('Next') || link.label.includes('&raquo;');
-
-                                            return (
-                                                <Link
-                                                    key={index}
-                                                    href={link.url}
-                                                    preserveState
-                                                    className={`px-3 py-2 text-sm rounded-md transition-colors ${
-                                                        isActive
-                                                            ? 'bg-blue-600 text-white'
-                                                            : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
-                                                    }`}
-                                                >
-                                                    {isPrevious ? (
-                                                        <ChevronLeft className="h-4 w-4" />
-                                                    ) : isNext ? (
-                                                        <ChevronRight className="h-4 w-4" />
-                                                    ) : (
-                                                        <span dangerouslySetInnerHTML={{ __html: link.label }} />
-                                                    )}
-                                                </Link>
-                                            );
-                                        })}
-                                    </div>
-                                </div>
-                            )}
+            <div className="flex h-full flex-1 flex-col gap-4 p-4 sm:gap-6 sm:p-6">
+                    {/* Header */}
+                    <div className="flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0">
+                        <div>
+                            <h1 className="text-2xl font-bold tracking-tight">Usuários</h1>
+                            <p className="text-muted-foreground">
+                                Gerencie administradores e instrutores do sistema
+                            </p>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                            <Link href="/users/create">
+                                <Button className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2">
+                                    <Plus className="h-4 w-4 mr-2" />
+                                    Novo Usuário
+                                </Button>
+                            </Link>
                         </div>
                     </div>
-                </div>
+
+                    {/* Alertas */}
+                    {props.flash?.success && (
+                        <SuccessAlert message={props.flash.success} />
+                    )}
+
+                    {props.errors?.delete && (
+                        <Alert className="border-red-200 bg-red-50">
+                            <AlertDescription className="text-red-700">
+                                {props.errors.delete}
+                            </AlertDescription>
+                        </Alert>
+                    )}
+
+                    {/* Cards de Estatísticas */}
+                    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
+                        <Card>
+                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                <CardTitle className="text-sm font-medium">Total de Usuários</CardTitle>
+                                <Users className="h-4 w-4 text-muted-foreground" />
+                            </CardHeader>
+                            <CardContent>
+                                <div className="text-2xl font-bold">{totalUsers}</div>
+                                <p className="text-xs text-muted-foreground">
+                                    Todos os usuários
+                                </p>
+                            </CardContent>
+                        </Card>
+                        
+                        <Card>
+                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                <CardTitle className="text-sm font-medium">Usuários Ativos</CardTitle>
+                                <UserCheck className="h-4 w-4 text-green-600" />
+                            </CardHeader>
+                            <CardContent>
+                                <div className="text-2xl font-bold text-green-600">{activeUsers}</div>
+                                <p className="text-xs text-muted-foreground">
+                                    Contas ativas
+                                </p>
+                            </CardContent>
+                        </Card>
+                        
+                        <Card>
+                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                <CardTitle className="text-sm font-medium">Usuários Inativos</CardTitle>
+                                <UserX className="h-4 w-4 text-red-600" />
+                            </CardHeader>
+                            <CardContent>
+                                <div className="text-2xl font-bold text-red-600">{inactiveUsers}</div>
+                                <p className="text-xs text-muted-foreground">
+                                    Contas inativas
+                                </p>
+                            </CardContent>
+                        </Card>
+                        
+                        <Card>
+                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                <CardTitle className="text-sm font-medium">Administradores</CardTitle>
+                                <Shield className="h-4 w-4 text-blue-600" />
+                            </CardHeader>
+                            <CardContent>
+                                <div className="text-2xl font-bold text-blue-600">{adminUsers}</div>
+                                <p className="text-xs text-muted-foreground">
+                                    Acesso total
+                                </p>
+                            </CardContent>
+                        </Card>
+                        
+                        <Card>
+                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                <CardTitle className="text-sm font-medium">Instrutores</CardTitle>
+                                <GraduationCap className="h-4 w-4 text-purple-600" />
+                            </CardHeader>
+                            <CardContent>
+                                <div className="text-2xl font-bold text-purple-600">{instructorUsers}</div>
+                                <p className="text-xs text-muted-foreground">
+                                    Professores
+                                </p>
+                            </CardContent>
+                        </Card>
+                    </div>
+
+                    {/* Filtros */}
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Filtros</CardTitle>
+                            <CardDescription>
+                                Filtre os usuários por nome, função ou status
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="grid gap-4 md:grid-cols-3">
+                                <div className="flex flex-col space-y-2">
+                                    <label className="text-sm font-medium">Buscar</label>
+                                    <div className="relative">
+                                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                        <Input
+                                            placeholder="Buscar por nome ou email..."
+                                            value={search}
+                                            onChange={(e) => setSearch(e.target.value)}
+                                            className="pl-10"
+                                        />
+                                    </div>
+                                </div>
+                                
+                                <div className="flex flex-col space-y-2">
+                                    <label className="text-sm font-medium">Função</label>
+                                    <Select value={roleFilter} onValueChange={setRoleFilter}>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Função" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="all">Todas as funções</SelectItem>
+                                            <SelectItem value="admin">Administrador</SelectItem>
+                                            <SelectItem value="instructor">Instrutor</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+
+                                <div className="flex flex-col space-y-2">
+                                    <label className="text-sm font-medium">Status</label>
+                                    <Select value={statusFilter} onValueChange={setStatusFilter}>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Status" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="all">Todos os status</SelectItem>
+                                            <SelectItem value="active">Ativo</SelectItem>
+                                            <SelectItem value="inactive">Inativo</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    {/* Tabela de Usuários */}
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Lista de Usuários</CardTitle>
+                            <CardDescription>
+                                Visualize e gerencie todos os usuários do sistema
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="rounded-md border">
+                                <Table>
+                                    <TableHeader>
+                                        <TableRow>
+                                            <TableHead>Nome</TableHead>
+                                            <TableHead>Email</TableHead>
+                                            <TableHead>Função</TableHead>
+                                            <TableHead>Status</TableHead>
+                                            <TableHead>Alunos</TableHead>
+                                            <TableHead>Aulas</TableHead>
+                                            <TableHead>Ações</TableHead>
+                                        </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {users.data.map((user) => (
+                                            <TableRow key={user.id}>
+                                                <TableCell className="font-medium">{user.name}</TableCell>
+                                                <TableCell>{user.email}</TableCell>
+                                                <TableCell>
+                                                    <Badge variant={user.role === 'admin' ? 'default' : 'secondary'}>
+                                                        {user.role === 'admin' ? 'Administrador' : 'Instrutor'}
+                                                    </Badge>
+                                                </TableCell>
+                                                <TableCell>
+                                                    <Badge variant={user.is_active ? 'default' : 'destructive'}>
+                                                        {user.is_active ? 'Ativo' : 'Inativo'}
+                                                    </Badge>
+                                                </TableCell>
+                                                <TableCell>{user.students_count}</TableCell>
+                                                <TableCell>{user.classes_count}</TableCell>
+                                                <TableCell>
+                                                    <DropdownMenu>
+                                                        <DropdownMenuTrigger asChild>
+                                                            <Button variant="ghost" className="h-8 w-8 p-0">
+                                                                <MoreHorizontal className="h-4 w-4" />
+                                                            </Button>
+                                                        </DropdownMenuTrigger>
+                                                        <DropdownMenuContent align="end">
+                                                            <DropdownMenuItem asChild>
+                                                                <Link href={`/users/${user.id}`}>
+                                                                    <Eye className="h-4 w-4 mr-2" />
+                                                                    Visualizar
+                                                                </Link>
+                                                            </DropdownMenuItem>
+                                                            <DropdownMenuItem asChild>
+                                                                <Link href={`/users/${user.id}/edit`}>
+                                                                    <Edit className="h-4 w-4 mr-2" />
+                                                                    Editar
+                                                                </Link>
+                                                            </DropdownMenuItem>
+                                                            <DropdownMenuSeparator />
+                                                            <DropdownMenuItem onClick={() => handleToggleStatus(user)}>
+                                                                {user.is_active ? (
+                                                                    <>
+                                                                        <UserX className="h-4 w-4 mr-2" />
+                                                                        Desativar
+                                                                    </>
+                                                                ) : (
+                                                                    <>
+                                                                        <UserCheck className="h-4 w-4 mr-2" />
+                                                                        Ativar
+                                                                    </>
+                                                                )}
+                                                            </DropdownMenuItem>
+                                                            <DropdownMenuSeparator />
+                                                            <AlertDialog>
+                                                                <AlertDialogTrigger asChild>
+                                                                    <DropdownMenuItem 
+                                                                        className="text-red-600 focus:text-red-600"
+                                                                        onSelect={(e) => e.preventDefault()}
+                                                                    >
+                                                                        <Trash2 className="h-4 w-4 mr-2" />
+                                                                        Excluir
+                                                                    </DropdownMenuItem>
+                                                                </AlertDialogTrigger>
+                                                                <AlertDialogContent>
+                                                                    <AlertDialogHeader>
+                                                                        <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+                                                                        <AlertDialogDescription>
+                                                                            Tem certeza que deseja excluir o usuário {user.name}? Esta ação não pode ser desfeita.
+                                                                        </AlertDialogDescription>
+                                                                    </AlertDialogHeader>
+                                                                    <AlertDialogFooter>
+                                                                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                                                        <AlertDialogAction 
+                                                                            onClick={() => handleDelete(user)}
+                                                                            className="bg-red-600 hover:bg-red-700"
+                                                                        >
+                                                                            Excluir
+                                                                        </AlertDialogAction>
+                                                                    </AlertDialogFooter>
+                                                                </AlertDialogContent>
+                                                            </AlertDialog>
+                                                        </DropdownMenuContent>
+                                                    </DropdownMenu>
+                                                </TableCell>
+                                            </TableRow>
+                                        ))}
+                                    </TableBody>
+                                </Table>
+                            </div>
+
+                            {/* Paginação */}
+                            <div className="flex items-center justify-between space-x-2 py-4">
+                                <div className="flex-1 text-sm text-muted-foreground">
+                                    Mostrando {users.from} até {users.to} de {users.total} usuários
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                    {users.links.map((link, index) => (
+                                        <Button
+                                            key={index}
+                                            variant={link.active ? "default" : "outline"}
+                                            size="sm"
+                                            onClick={() => {
+                                                if (link.url) {
+                                                    router.get(link.url);
+                                                }
+                                            }}
+                                            disabled={!link.url}
+                                            dangerouslySetInnerHTML={{ __html: link.label }}
+                                        />
+                                    ))}
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
             </div>
         </AuthenticatedLayout>
     );

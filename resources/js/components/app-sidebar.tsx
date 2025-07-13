@@ -4,6 +4,17 @@ import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, Sid
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/react';
 import AppLogo from './app-logo';
+import { Home, Calendar, KanbanSquare, Users, CreditCard, Clock, UserCog } from 'lucide-react';
+
+const menu: NavItem[] = [
+    { title: 'Dashboard', href: '/dashboard', icon: Home },
+    { title: 'Agenda', href: '/calendar', icon: Calendar },
+    { title: 'Aulas', href: '/classes', icon: KanbanSquare },
+    { title: 'Alunos', href: '/students', icon: Users },
+    { title: 'Planos', href: '/plans', icon: CreditCard },
+    { title: 'Grade Fixa', href: '/recurring-classes', icon: Clock },
+    { title: 'Usuários', href: '/users', icon: UserCog },
+];
 
 export function AppSidebar() {
     return (
@@ -21,7 +32,7 @@ export function AppSidebar() {
             </SidebarHeader>
 
             <SidebarContent>
-                <NavMain items={[]} />
+                <NavMain items={menu} />
             </SidebarContent>
 
             <SidebarFooter>

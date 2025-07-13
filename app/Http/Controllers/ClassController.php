@@ -205,12 +205,13 @@ class ClassController extends Controller
 
         $class->update($validated);
 
-        if ($request->header('X-Inertia')) {
-            return response()->json(['success' => true])->header('X-Inertia', 'true');
+        // Se for uma chamada via fetch (ex: drag-and-drop) que espera JSON, devolve simples resposta JSON
+        if ($request->expectsJson()) {
+            return response()->json(['success' => true]);
         }
 
-        return redirect()->route('classes.index')
-            ->with('success', 'Aula atualizada com sucesso!');
+        // Para chamadas oriundas de formulários Inertia, redireciona de volta mantendo mensagens flash
+        return redirect()->back()->with('success', 'Aula atualizada com sucesso!');
     }
 
     /**

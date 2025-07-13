@@ -10,10 +10,12 @@ export default function AppSidebarLayout({ children, breadcrumbs = [] }: PropsWi
     return (
         <AppShell variant="sidebar">
             <AppSidebar />
-            <div className="flex flex-1 flex-col min-h-0">
-                <AppContent variant="sidebar" className="overflow-x-hidden">
+            <div className="flex flex-1 flex-col w-full max-w-full overflow-x-hidden">
+                <AppContent variant="sidebar" className="flex-1 w-full max-w-full overflow-x-hidden">
                     <AppSidebarHeader breadcrumbs={breadcrumbs} />
-                    {children}
+                    <div className="flex-1 w-full max-w-full overflow-x-hidden p-4">
+                        {children}
+                    </div>
                 </AppContent>
                 <NavFooter />
             </div>

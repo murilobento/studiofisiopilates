@@ -4,7 +4,8 @@ import { Head, Link, router } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Calendar, Eye, Edit, Trash2 } from 'lucide-react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Plus, Calendar, Eye, Edit, Trash2, Clock, Users, CheckCircle, XCircle, Filter } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import SuccessAlert from '@/components/success-alert';
 import { PageProps } from '@/types';
@@ -86,47 +87,118 @@ export default function Index({ classes, instructors, filters, can, flash }: Cla
         }
     };
 
+    // Calcular estatísticas
+    const totalClasses = classes.data.length;
+    const scheduledClasses = classes.data.filter(classItem => classItem.status.value === 'scheduled').length;
+    const completedClasses = classes.data.filter(classItem => classItem.status.value === 'completed').length;
+    const cancelledClasses = classes.data.filter(classItem => classItem.status.value === 'cancelled').length;
+
     return (
         <AuthenticatedLayout breadcrumbs={breadcrumbs}>
             <Head title="Aulas" />
 
-            <div className="py-12">
-                <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
-                    <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                        <div className="p-6 text-gray-900">
-                            {flash?.success && (
-                                <div className="mb-4">
-                                    <SuccessAlert message={flash.success} />
-                                </div>
+            <div className="flex h-full flex-1 flex-col gap-4 p-4 sm:gap-6 sm:p-6">
+                    {/* Header */}
+                    <div className="flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0">
+                        <div>
+                            <h1 className="text-2xl font-bold tracking-tight">Aulas</h1>
+                            <p className="text-muted-foreground">
+                                Gerencie todas as aulas agendadas no sistema
+                            </p>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                            <Link
+                                href="/calendar"
+                                className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2"
+                            >
+                                <Calendar className="h-4 w-4 mr-2" />
+                                Calendário
+                            </Link>
+                            {can.create && (
+                                <Link
+                                    href="/classes/create"
+                                    className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2"
+                                >
+                                    <Plus className="h-4 w-4 mr-2" />
+                                    Nova Aula
+                                </Link>
                             )}
-                            
-                            <div className="flex justify-between items-center mb-4">
-                                <h3 className="text-lg font-medium text-gray-900">Lista de Aulas</h3>
-                                <div className="flex gap-2">
-                                    <Link
-                                        href="/calendar"
-                                        className="inline-flex items-center px-4 py-2 bg-white border border-gray-300 rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-25 transition ease-in-out duration-150"
-                                    >
-                                        <Calendar className="h-4 w-4 mr-2" />
-                                        Calendário
-                                    </Link>
-                                    {can.create && (
-                                        <Link
-                                            href="/classes/create"
-                                            className="inline-flex items-center px-4 py-2 bg-gray-800 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700 focus:bg-gray-700 active:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150"
-                                        >
-                                            <Plus className="h-4 w-4 mr-2" />
-                                            Nova Aula
-                                        </Link>
-                                    )}
-                                </div>
-                            </div>
+                        </div>
+                    </div>
 
-                            {/* Filtros */}
-                            <div className="flex items-center py-4 space-x-4">
+                    {/* Alertas */}
+                    {flash?.success && (
+                        <SuccessAlert message={flash.success} />
+                    )}
+
+                    {/* Cards de Estatísticas */}
+                    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                        <Card>
+                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                <CardTitle className="text-sm font-medium">Total de Aulas</CardTitle>
+                                <Clock className="h-4 w-4 text-muted-foreground" />
+                            </CardHeader>
+                            <CardContent>
+                                <div className="text-2xl font-bold">{totalClasses}</div>
+                                <p className="text-xs text-muted-foreground">
+                                    Todas as aulas cadastradas
+                                </p>
+                            </CardContent>
+                        </Card>
+                        
+                        <Card>
+                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                <CardTitle className="text-sm font-medium">Agendadas</CardTitle>
+                                <Calendar className="h-4 w-4 text-blue-600" />
+                            </CardHeader>
+                            <CardContent>
+                                <div className="text-2xl font-bold text-blue-600">{scheduledClasses}</div>
+                                <p className="text-xs text-muted-foreground">
+                                    Aulas programadas
+                                </p>
+                            </CardContent>
+                        </Card>
+                        
+                        <Card>
+                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                <CardTitle className="text-sm font-medium">Concluídas</CardTitle>
+                                <CheckCircle className="h-4 w-4 text-green-600" />
+                            </CardHeader>
+                            <CardContent>
+                                <div className="text-2xl font-bold text-green-600">{completedClasses}</div>
+                                <p className="text-xs text-muted-foreground">
+                                    Aulas finalizadas
+                                </p>
+                            </CardContent>
+                        </Card>
+                        
+                        <Card>
+                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                <CardTitle className="text-sm font-medium">Canceladas</CardTitle>
+                                <XCircle className="h-4 w-4 text-red-600" />
+                            </CardHeader>
+                            <CardContent>
+                                <div className="text-2xl font-bold text-red-600">{cancelledClasses}</div>
+                                <p className="text-xs text-muted-foreground">
+                                    Aulas canceladas
+                                </p>
+                            </CardContent>
+                        </Card>
+                    </div>
+
+                    {/* Filtros */}
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Filtros</CardTitle>
+                            <CardDescription>
+                                Filtre as aulas por instrutor, status ou data
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="grid gap-4 md:grid-cols-3">
                                 {can.chooseInstructor && (
-                                    <div className="flex flex-col space-y-1">
-                                        <label className="text-sm font-medium text-gray-700">
+                                    <div className="flex flex-col space-y-2">
+                                        <label className="text-sm font-medium">
                                             Instrutor
                                         </label>
                                         <Select
@@ -138,7 +210,7 @@ export default function Index({ classes, instructors, filters, can, flash }: Cla
                                                 }, { preserveState: true });
                                             }}
                                         >
-                                            <SelectTrigger className="w-48">
+                                            <SelectTrigger>
                                                 <SelectValue placeholder="Todos os instrutores" />
                                             </SelectTrigger>
                                             <SelectContent>
@@ -152,8 +224,8 @@ export default function Index({ classes, instructors, filters, can, flash }: Cla
                                         </Select>
                                     </div>
                                 )}
-                                <div className="flex flex-col space-y-1">
-                                    <label className="text-sm font-medium text-gray-700">
+                                <div className="flex flex-col space-y-2">
+                                    <label className="text-sm font-medium">
                                         Status
                                     </label>
                                     <Select
@@ -165,7 +237,7 @@ export default function Index({ classes, instructors, filters, can, flash }: Cla
                                             }, { preserveState: true });
                                         }}
                                     >
-                                        <SelectTrigger className="w-48">
+                                        <SelectTrigger>
                                             <SelectValue placeholder="Todos os status" />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -176,13 +248,12 @@ export default function Index({ classes, instructors, filters, can, flash }: Cla
                                         </SelectContent>
                                     </Select>
                                 </div>
-                                <div className="flex flex-col space-y-1">
-                                    <label className="text-sm font-medium text-gray-700">
+                                <div className="flex flex-col space-y-2">
+                                    <label className="text-sm font-medium">
                                         Data
                                     </label>
                                     <Input
                                         type="date"
-                                        className="w-48"
                                         value={filters.date || ''}
                                         onChange={(e) => {
                                             router.get('/classes', { 
@@ -193,73 +264,71 @@ export default function Index({ classes, instructors, filters, can, flash }: Cla
                                     />
                                 </div>
                             </div>
+                        </CardContent>
+                    </Card>
 
-                            {/* Lista de Aulas */}
+                    {/* Lista de Aulas */}
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Lista de Aulas</CardTitle>
+                            <CardDescription>
+                                Visualize e gerencie todas as aulas do sistema
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent>
                             <div className="rounded-md border">
                                 <div className="overflow-x-auto">
                                     <table className="w-full">
-                                        <thead className="bg-gray-50 border-b">
-                                            <tr>
-                                                <th className="text-left py-3 px-4 font-medium text-gray-900">Aula</th>
-                                                <th className="text-left py-3 px-4 font-medium text-gray-900">Instrutor</th>
-                                                <th className="text-left py-3 px-4 font-medium text-gray-900">Data/Hora</th>
-                                                <th className="text-left py-3 px-4 font-medium text-gray-900">Alunos</th>
-                                                <th className="text-left py-3 px-4 font-medium text-gray-900">Status</th>
-                                                <th className="text-left py-3 px-4 font-medium text-gray-900">Ações</th>
+                                        <thead>
+                                            <tr className="border-b">
+                                                <th className="text-left p-4 font-medium">Título</th>
+                                                <th className="text-left p-4 font-medium">Horário</th>
+                                                <th className="text-left p-4 font-medium">Instrutor</th>
+                                                <th className="text-left p-4 font-medium">Alunos</th>
+                                                <th className="text-left p-4 font-medium">Status</th>
+                                                <th className="text-left p-4 font-medium">Ações</th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             {classes.data.map((classItem) => (
-                                                <tr key={classItem.id} className="border-b hover:bg-gray-50">
-                                                    <td className="py-3 px-4">
-                                                        <div className="font-medium text-gray-900">{classItem.title}</div>
-                                                    </td>
-                                                    <td className="py-3 px-4 text-gray-900">
-                                                        {classItem.instructor.name}
-                                                    </td>
-                                                    <td className="py-3 px-4">
-                                                        <div className="text-gray-900">
-                                                            {new Date(classItem.start_time).toLocaleDateString('pt-BR')}
-                                                        </div>
-                                                        <div className="text-sm text-gray-500">
-                                                            {new Date(classItem.start_time).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })} - {new Date(classItem.end_time).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                                                <tr key={classItem.id} className="border-b hover:bg-muted/50">
+                                                    <td className="p-4 font-medium">{classItem.title}</td>
+                                                    <td className="p-4">
+                                                        <div className="text-sm">
+                                                            {classItem.start_time} - {classItem.end_time}
                                                         </div>
                                                     </td>
-                                                    <td className="py-3 px-4">
-                                                        <span className="text-sm text-gray-900">
-                                                            {classItem.students.length}/{classItem.max_students}
-                                                        </span>
+                                                    <td className="p-4">{classItem.instructor.name}</td>
+                                                    <td className="p-4">
+                                                        <div className="flex items-center space-x-2">
+                                                            <Users className="h-4 w-4 text-muted-foreground" />
+                                                            <span className="text-sm">
+                                                                {classItem.students.length}/{classItem.max_students}
+                                                            </span>
+                                                        </div>
                                                     </td>
-                                                    <td className="py-3 px-4">
+                                                    <td className="p-4">
                                                         <Badge className={getStatusColor(classItem.status.value)}>
                                                             {classItem.status.label}
                                                         </Badge>
                                                     </td>
-                                                    <td className="py-3 px-4">
-                                                        <div className="flex gap-2">
-                                                            <Button
-                                                                asChild
-                                                                variant="outline"
-                                                                size="sm"
-                                                            >
-                                                                <Link href={`/classes/${classItem.id}`}>
+                                                    <td className="p-4">
+                                                        <div className="flex items-center space-x-2">
+                                                            <Link href={`/classes/${classItem.id}`}>
+                                                                <Button variant="ghost" size="sm">
                                                                     <Eye className="h-4 w-4" />
-                                                                </Link>
-                                                            </Button>
-                                                            <Button
-                                                                asChild
-                                                                variant="outline"
-                                                                size="sm"
-                                                            >
-                                                                <Link href={`/classes/${classItem.id}/edit`}>
+                                                                </Button>
+                                                            </Link>
+                                                            <Link href={`/classes/${classItem.id}/edit`}>
+                                                                <Button variant="ghost" size="sm">
                                                                     <Edit className="h-4 w-4" />
-                                                                </Link>
-                                                            </Button>
+                                                                </Button>
+                                                            </Link>
                                                             <Button
-                                                                variant="outline"
+                                                                variant="ghost"
                                                                 size="sm"
                                                                 onClick={() => deleteClass(classItem.id)}
-                                                                className="text-red-600 hover:text-red-700"
+                                                                className="text-red-600 hover:text-red-900"
                                                             >
                                                                 <Trash2 className="h-4 w-4" />
                                                             </Button>
@@ -271,15 +340,8 @@ export default function Index({ classes, instructors, filters, can, flash }: Cla
                                     </table>
                                 </div>
                             </div>
-
-                            {classes.data.length === 0 && (
-                                <div className="text-center py-6">
-                                    <p className="text-gray-500">Nenhuma aula encontrada.</p>
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                </div>
+                        </CardContent>
+                    </Card>
             </div>
         </AuthenticatedLayout>
     );

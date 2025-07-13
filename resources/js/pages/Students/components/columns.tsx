@@ -32,6 +32,8 @@ export type Student = {
   status: string
   cpf: string | null
   city: string | null
+  birth_date: string | null
+  age?: number | null
 }
 
 export const columns = (onDelete: (studentId: number) => void): ColumnDef<Student>[] => [
@@ -66,6 +68,37 @@ export const columns = (onDelete: (studentId: number) => void): ColumnDef<Studen
     },
     cell: ({ row }) => {
       return row.getValue("phone") || "Não informado"
+    },
+    enableColumnFilter: true,
+    enableGlobalFilter: true,
+  },
+  {
+    accessorKey: "age",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Idade
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      )
+    },
+    cell: ({ row }) => {
+      const birthDate = row.original.birth_date
+      if (!birthDate) return "Não informado"
+      
+      const today = new Date()
+      const birth = new Date(birthDate)
+      const age = today.getFullYear() - birth.getFullYear()
+      const monthDiff = today.getMonth() - birth.getMonth()
+      
+      if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+        return `${age - 1} anos`
+      }
+      
+      return `${age} anos`
     },
     enableColumnFilter: true,
     enableGlobalFilter: true,

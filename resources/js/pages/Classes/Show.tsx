@@ -111,7 +111,7 @@ export default function Show({ classItem, availableStudents, can }: Props) {
             <Head title={classItem.title} />
 
             <div className="py-12">
-                <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
+                <div className="flex h-full flex-1 flex-col gap-4 p-4 sm:gap-6 sm:p-6">
                     <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6 text-gray-900 space-y-6">
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-4">

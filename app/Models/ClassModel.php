@@ -22,6 +22,7 @@ class ClassModel extends Model
         'end_time',
         'max_students',
         'status',
+        'recurring_class_id',
     ];
 
     protected function casts(): array
@@ -39,6 +40,17 @@ class ClassModel extends Model
         return $this->belongsTo(User::class, 'instructor_id');
     }
 
+    /**
+     * Get the recurring class that owns the class instance.
+     */
+    public function recurringClass(): BelongsTo
+    {
+        return $this->belongsTo(RecurringClass::class, 'recurring_class_id');
+    }
+
+    /**
+     * The students that belong to the class.
+     */
     public function students(): BelongsToMany
     {
         return $this->belongsToMany(Student::class, 'class_student', 'class_id', 'student_id')
@@ -52,7 +64,7 @@ class ClassModel extends Model
         return $query->where('instructor_id', $instructorId);
     }
 
-    public function scopeThisWeek($query, Carbon $startOfWeek = null)
+    public function scopeThisWeek($query, ?Carbon $startOfWeek = null)
     {
         $start = $startOfWeek ?: Carbon::now()->startOfWeek();
         $end = $start->copy()->endOfWeek();

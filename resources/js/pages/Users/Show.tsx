@@ -101,7 +101,7 @@ const Show: React.FC<UserShowProps> = ({ auth, user }) => {
             <Head title={`Usuário: ${user.name}`} />
 
             <div className="py-12">
-                <div className="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
+                <div className="flex h-full flex-1 flex-col gap-4 p-4 sm:gap-6 sm:p-6">
                     {/* Header */}
                     <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                         <div className="p-4 sm:p-6">

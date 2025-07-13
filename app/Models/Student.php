@@ -25,6 +25,7 @@ class Student extends Model
         'zip_code',
         'gender',
         'cpf',
+        'birth_date',
         'medical_conditions',
         'medications',
         'allergies',
@@ -32,6 +33,13 @@ class Student extends Model
         'physical_activity_history',
         'general_notes',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'birth_date' => 'date',
+        ];
+    }
 
     public function plan(): BelongsTo
     {
@@ -81,5 +89,17 @@ class Student extends Model
         }
 
         return $currentEnrollments < $weeklyLimit;
+    }
+
+    /**
+     * Calcula a idade do aluno baseada na data de nascimento
+     */
+    public function getAgeAttribute(): ?int
+    {
+        if (!$this->birth_date) {
+            return null;
+        }
+
+        return $this->birth_date->diffInYears(Carbon::now());
     }
 }
