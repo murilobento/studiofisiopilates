@@ -5,6 +5,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Carbon\Carbon;
 
 class Student extends Model
@@ -34,6 +36,15 @@ class Student extends Model
         'general_notes',
     ];
 
+    /**
+     * Atributos que devem ser adicionados ao array / JSON do modelo.
+     * Isso garante que a idade calculada seja enviada para o front-end
+     * sem necessidade de cálculo adicional no cliente.
+     */
+    protected $appends = [
+        'age',
+    ];
+
     protected function casts(): array
     {
         return [
@@ -56,6 +67,28 @@ class Student extends Model
         return $this->belongsToMany(ClassModel::class, 'class_student', 'student_id', 'class_id')
                     ->withPivot('status')
                     ->withTimestamps();
+    }
+
+    public function monthlyPayments(): HasMany
+    {
+        return $this->hasMany(MonthlyPayment::class);
+    }
+
+    public function currentMonthPayment(): HasOne
+    {
+        return $this->hasOne(MonthlyPayment::class)
+                    ->whereMonth('reference_month', now()->month)
+                    ->whereYear('reference_month', now()->year);
+    }
+
+    public function pendingPayments(): HasMany
+    {
+        return $this->hasMany(MonthlyPayment::class)->where('status', 'pending');
+    }
+
+    public function overduePayments(): HasMany
+    {
+        return $this->hasMany(MonthlyPayment::class)->where('status', 'overdue');
     }
 
     // Methods
@@ -100,6 +133,6 @@ class Student extends Model
             return null;
         }
 
-        return $this->birth_date->diffInYears(Carbon::now());
+        return (int) $this->birth_date->diffInYears(Carbon::now());
     }
 }

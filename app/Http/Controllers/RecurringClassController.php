@@ -6,7 +6,8 @@ use App\Enums\UserRole;
 use App\Models\RecurringClass;
 use App\Models\User;
 use App\Services\RecurringClassService;
-use Illuminate\Http\Request;
+use App\Http\Requests\StoreRecurringClassRequest;
+use App\Http\Requests\UpdateRecurringClassRequest;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
@@ -63,33 +64,9 @@ class RecurringClassController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(StoreRecurringClassRequest $request)
     {
-        $user = Auth::user();
-        
-        $rules = [
-            'title' => 'required|string|max:255',
-            'day_of_week' => 'required|integer|between:1,7',
-            'start_time' => 'required|date_format:H:i',
-            'end_time' => 'required|date_format:H:i|after:start_time',
-            'max_students' => 'required|integer|min:1',
-            'start_date' => 'required|date',
-            'end_date' => 'nullable|date|after_or_equal:start_date',
-            'auto_replicate_students' => 'required|boolean',
-            'is_active' => 'required|boolean',
-        ];
-
-        // Apenas admin precisa escolher instrutor
-        if ($user->role === UserRole::ADMIN) {
-            $rules['instructor_id'] = 'required|exists:users,id';
-        }
-
-        $validated = $request->validate($rules);
-
-        // Se for instrutor, força o instructor_id para o próprio usuário
-        if ($user->role === UserRole::INSTRUCTOR) {
-            $validated['instructor_id'] = $user->id;
-        }
+        $validated = $request->validated();
 
         DB::transaction(function () use ($validated) {
             $recurringClass = RecurringClass::create($validated);
@@ -136,35 +113,11 @@ class RecurringClassController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, RecurringClass $recurringClass)
+    public function update(UpdateRecurringClassRequest $request, RecurringClass $recurringClass)
     {
         $this->authorize('update', $recurringClass);
 
-        $user = Auth::user();
-        
-        $rules = [
-            'title' => 'required|string|max:255',
-            'day_of_week' => 'required|integer|between:1,7',
-            'start_time' => 'required|date_format:H:i',
-            'end_time' => 'required|date_format:H:i|after:start_time',
-            'max_students' => 'required|integer|min:1',
-            'start_date' => 'required|date',
-            'end_date' => 'nullable|date|after_or_equal:start_date',
-            'auto_replicate_students' => 'required|boolean',
-            'is_active' => 'required|boolean',
-        ];
-
-        // Apenas admin pode alterar instrutor
-        if ($user->role === UserRole::ADMIN) {
-            $rules['instructor_id'] = 'required|exists:users,id';
-        }
-
-        $validated = $request->validate($rules);
-
-        // Se for instrutor, não permite alterar o instructor_id
-        if ($user->role === UserRole::INSTRUCTOR) {
-            unset($validated['instructor_id']);
-        }
+        $validated = $request->validated();
 
         DB::transaction(function () use ($recurringClass, $validated) {
             // Remove aulas futuras existentes

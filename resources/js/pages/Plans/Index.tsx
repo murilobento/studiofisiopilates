@@ -11,6 +11,7 @@ import { ColumnFiltersState, SortingState, VisibilityState, getCoreRowModel, get
 import SuccessAlert from '@/components/success-alert';
 import { PageProps } from '@/types';
 import { type BreadcrumbItem } from '@/types';
+import { Pagination } from '@/components/ui/pagination';
 
 interface PlansIndexProps extends PageProps {
     plans: Plan[];
@@ -196,31 +197,18 @@ const Index: React.FC<PlansIndexProps> = ({ auth, plans, flash }) => {
                                 <DataTable columns={tableColumns} data={plans} table={table} />
                             </div>
 
-                            {/* Paginação */}
-                            <div className="flex items-center justify-between space-x-2 py-4">
-                                <div className="flex-1 text-sm text-muted-foreground">
-                                    {table.getFilteredSelectedRowModel().rows.length} de{" "}
-                                    {table.getFilteredRowModel().rows.length} linha(s) selecionada(s).
-                                </div>
-                                <div className="flex items-center space-x-2">
-                                    <Button
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={() => table.previousPage()}
-                                        disabled={!table.getCanPreviousPage()}
-                                    >
-                                        Anterior
-                                    </Button>
-                                    <Button
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={() => table.nextPage()}
-                                        disabled={!table.getCanNextPage()}
-                                    >
-                                        Próximo
-                                    </Button>
-                                </div>
-                            </div>
+                            <Pagination 
+                                type="client" 
+                                data={{
+                                    currentPage: table.getState().pagination.pageIndex + 1,
+                                    totalPages: table.getPageCount(),
+                                    from: table.getState().pagination.pageIndex * table.getState().pagination.pageSize + 1,
+                                    to: Math.min((table.getState().pagination.pageIndex + 1) * table.getState().pagination.pageSize, table.getFilteredRowModel().rows.length),
+                                    total: table.getFilteredRowModel().rows.length,
+                                    onPageChange: (page: number) => table.setPageIndex(page - 1)
+                                }}
+                                itemName="planos" 
+                            />
                         </CardContent>
                     </Card>
             </div>

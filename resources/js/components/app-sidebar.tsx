@@ -4,7 +4,7 @@ import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, Sid
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/react';
 import AppLogo from './app-logo';
-import { Home, Calendar, KanbanSquare, Users, CreditCard, Clock, UserCog } from 'lucide-react';
+import { Home, Calendar, KanbanSquare, Users, CreditCard, Clock, UserCog, DollarSign } from 'lucide-react';
 
 const menu: NavItem[] = [
     { title: 'Dashboard', href: '/dashboard', icon: Home },
@@ -13,6 +13,7 @@ const menu: NavItem[] = [
     { title: 'Alunos', href: '/students', icon: Users },
     { title: 'Planos', href: '/plans', icon: CreditCard },
     { title: 'Grade Fixa', href: '/recurring-classes', icon: Clock },
+    { title: 'Mensalidades', href: '/payments', icon: DollarSign },
     { title: 'Usuários', href: '/users', icon: UserCog },
 ];
 

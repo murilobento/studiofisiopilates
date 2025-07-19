@@ -15,6 +15,7 @@ import CepInput from '@/components/cep-input-component';
 import { DatePicker } from '@/components/ui/date-picker';
 import { Save, ArrowLeft } from 'lucide-react';
 import { type BreadcrumbItem } from '@/types';
+import { format } from 'date-fns';
 
 interface Plan {
     id: number;
@@ -175,8 +176,11 @@ const Create: React.FC<StudentsCreateProps> = ({ auth, plans, instructors, can }
                                 <div>
                                     <Label htmlFor="birth_date">Data de Nascimento</Label>
                                     <DatePicker
-                                        value={data.birth_date}
-                                        onChange={(date) => setData('birth_date', date ? date.toISOString().split('T')[0] : '')}
+                                        value={data.birth_date ? new Date(data.birth_date) : undefined}
+                                        onChange={(date) => {
+                                            const formattedDate = date ? format(date, 'yyyy-MM-dd') : '';
+                                            setData('birth_date', formattedDate);
+                                        }}
                                         placeholder="Selecione a data de nascimento"
                                         className="mt-1"
                                     />

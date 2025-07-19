@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Student;
 use App\Models\Plan;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\DB;
 
@@ -12,12 +13,14 @@ class DashboardController extends Controller
 {
     public function index()
     {
-        // Estatísticas gerais (apenas alunos ativos)
-        $totalStudents = Student::where('status', 'ativo')->count();
-        $totalPlans = Plan::count();
-        
-        // Receita total (soma dos preços personalizados dos alunos ativos)
-        $totalRevenue = Student::where('status', 'ativo')->whereNotNull('custom_price')->sum('custom_price');
+        // Cache dashboard metrics for 5 minutes
+        $stats = Cache::remember('dashboard_stats', 300, function () {
+            return [
+                'totalStudents' => Student::where('status', 'ativo')->count(),
+                'totalPlans' => Plan::count(),
+                'totalRevenue' => Student::where('status', 'ativo')->whereNotNull('custom_price')->sum('custom_price'),
+            ];
+        });
         
         // Alunos por plano (apenas ativos)
         $studentsByPlan = Student::select('plans.description', DB::raw('count(*) as total'))
@@ -108,10 +111,10 @@ class DashboardController extends Controller
 
         return Inertia::render('dashboard', [
             'stats' => [
-                'totalStudents' => $totalStudents,
-                'totalPlans' => $totalPlans,
-                'totalRevenue' => $totalRevenue,
-                'averageRevenuePerStudent' => $totalStudents > 0 ? round($totalRevenue / $totalStudents, 2) : 0,
+                'totalStudents' => $stats['totalStudents'],
+                'totalPlans' => $stats['totalPlans'],
+                'totalRevenue' => $stats['totalRevenue'],
+                'averageRevenuePerStudent' => $stats['totalStudents'] > 0 ? round($stats['totalRevenue'] / $stats['totalStudents'], 2) : 0,
             ],
             'studentsByPlan' => $studentsByPlan,
             'studentsByCity' => $studentsByCity,

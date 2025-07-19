@@ -32,9 +32,22 @@ Route::middleware(['auth', 'verified', 'active', 'role:admin'])->group(function 
     Route::patch('users/{user}/toggle-status', [\App\Http\Controllers\UserController::class, 'toggleStatus'])->name('users.toggle-status');
 });
 
+// Payments routes
+Route::middleware(['auth', 'verified', 'active', 'role:admin,instructor'])->group(function () {
+    Route::get('payments/generate', [\App\Http\Controllers\PaymentController::class, 'generateForm'])->name('payments.generate');
+    Route::post('payments/generate/check', [\App\Http\Controllers\PaymentController::class, 'checkGeneration'])->name('payments.generate.check');
+    Route::post('payments/generate', [\App\Http\Controllers\PaymentController::class, 'generate'])->name('payments.generate.store');
+    Route::resource('payments', \App\Http\Controllers\PaymentController::class);
+    Route::post('payments/{payment}/process', [\App\Http\Controllers\PaymentController::class, 'processPayment'])->name('payments.process');
+    Route::post('payments/{payment}/cancel', [\App\Http\Controllers\PaymentController::class, 'cancel'])->name('payments.cancel');
+    Route::post('payments/{payment}/undo', [\App\Http\Controllers\PaymentController::class, 'undoPayment'])->name('payments.undo');
+    Route::post('payments/{payment}/undo-cancel', [\App\Http\Controllers\PaymentController::class, 'undoCancel'])->name('payments.undo-cancel');
+    Route::get('payments/report', [\App\Http\Controllers\PaymentController::class, 'report'])->name('payments.report');
+});
+
 Route::get('/buscar-cep/{cep}', function ($cep) {
     $viaCepService = new \App\Services\ViaCepService();
     $endereco = $viaCepService->buscarCep($cep);
     
     return response()->json($endereco);
-})->middleware(['auth', 'verified', 'active']);
+})->middleware(['auth', 'verified', 'active', 'throttle:10,1']);

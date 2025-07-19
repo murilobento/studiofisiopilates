@@ -86,19 +86,46 @@ export const columns = (onDelete: (studentId: number) => void): ColumnDef<Studen
       )
     },
     cell: ({ row }) => {
+      // Prioriza a idade já calculada no backend
+      const age = row.getValue("age") as number | null
+
+      if (age !== null && age !== undefined) {
+        return `${age} anos`
+      }
+
+      // Fallback: calcular idade no cliente caso não tenha vindo do backend
       const birthDate = row.original.birth_date
       if (!birthDate) return "Não informado"
-      
+
       const today = new Date()
       const birth = new Date(birthDate)
-      const age = today.getFullYear() - birth.getFullYear()
+      let calcAge = today.getFullYear() - birth.getFullYear()
       const monthDiff = today.getMonth() - birth.getMonth()
-      
+
       if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
-        return `${age - 1} anos`
+        calcAge -= 1
       }
-      
-      return `${age} anos`
+
+      return `${calcAge} anos`
+    },
+    enableColumnFilter: true,
+    enableGlobalFilter: true,
+  },
+  {
+    accessorKey: "plan.description",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Plano
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      )
+    },
+    cell: ({ row }) => {
+      return row.original.plan?.description || "Não informado"
     },
     enableColumnFilter: true,
     enableGlobalFilter: true,

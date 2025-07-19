@@ -86,199 +86,197 @@ export default function Create({ instructors, can }: CreateProps) {
     return (
         <AuthenticatedLayout breadcrumbs={breadcrumbs}>
             <Head title="Nova Aula Recorrente" />
-            
-            <div className="py-12">
-                <div className="flex h-full flex-1 flex-col gap-4 p-4 sm:gap-6 sm:p-6">
-                    <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                        <div className="p-6 text-gray-900">
-                            <div className="flex items-center justify-between mb-6">
-                                <div className="flex items-center gap-4">
-                                    <Link
-                                        href={route('recurring-classes.index')}
-                                        className="inline-flex items-center px-4 py-2 bg-white border border-gray-300 rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-25 transition ease-in-out duration-150"
-                                    >
-                                        <ArrowLeft className="h-4 w-4 mr-2" />
-                                        Voltar
-                                    </Link>
-                                    <div>
-                                        <h3 className="text-lg font-medium text-gray-900">Nova Aula Recorrente</h3>
-                                        <p className="text-sm text-gray-600">Criar novo horário fixo na grade</p>
-                                    </div>
-                                </div>
+            <div className="flex h-full flex-1 flex-col gap-4 p-4 sm:gap-6 sm:p-6">
+                {/* Header */}
+                <div className="flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0 mb-4">
+                    <div>
+                        <h1 className="text-2xl font-bold tracking-tight">Nova Aula Recorrente</h1>
+                        <p className="text-muted-foreground">Criar novo horário fixo na grade</p>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                        <Link
+                            href={route('recurring-classes.index')}
+                            className="inline-flex items-center px-4 py-2 bg-white border border-gray-300 rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-25 transition ease-in-out duration-150"
+                        >
+                            <ArrowLeft className="h-4 w-4 mr-2" />
+                            Voltar
+                        </Link>
+                    </div>
+                </div>
+                {/* Formulário */}
+                <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+                    <div className="p-6 text-gray-900">
+                        <form onSubmit={submit} className="space-y-6">
+                            {/* Título */}
+                            <div>
+                                <Label htmlFor="title" className="block text-sm font-medium text-gray-700">
+                                    Título da Aula *
+                                </Label>
+                                <Input 
+                                    id="title" 
+                                    type="text" 
+                                    value={data.title} 
+                                    onChange={(e) => setData('title', e.target.value)} 
+                                    placeholder="Ex: Pilates Iniciante"
+                                    className={`mt-1 ${errors.title ? 'border-red-500' : ''}`}
+                                    required 
+                                />
+                                {errors.title && <p className="text-red-500 text-sm mt-1">{errors.title}</p>}
                             </div>
 
-                            <form onSubmit={submit} className="space-y-6">
-                                {/* Título */}
+                            {/* Instrutor (se admin) */}
+                            {can.chooseInstructor && (
                                 <div>
-                                    <Label htmlFor="title" className="block text-sm font-medium text-gray-700">
-                                        Título da Aula *
+                                    <Label htmlFor="instructor_id" className="block text-sm font-medium text-gray-700">
+                                        Instrutor *
                                     </Label>
-                                    <Input 
-                                        id="title" 
-                                        type="text" 
-                                        value={data.title} 
-                                        onChange={(e) => setData('title', e.target.value)} 
-                                        placeholder="Ex: Pilates Iniciante"
-                                        className={`mt-1 ${errors.title ? 'border-red-500' : ''}`}
-                                        required 
-                                    />
-                                    {errors.title && <p className="text-red-500 text-sm mt-1">{errors.title}</p>}
-                                </div>
-
-                                {/* Instrutor (se admin) */}
-                                {can.chooseInstructor && (
-                                    <div>
-                                        <Label htmlFor="instructor_id" className="block text-sm font-medium text-gray-700">
-                                            Instrutor *
-                                        </Label>
-                                        <Select onValueChange={(value) => setData('instructor_id', value)} value={data.instructor_id}>
-                                            <SelectTrigger className={`mt-1 ${errors.instructor_id ? 'border-red-500' : ''}`}>
-                                                <SelectValue placeholder="Selecione um instrutor" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {instructors.map((instructor) => (
-                                                    <SelectItem key={instructor.id} value={instructor.id.toString()}>{instructor.name}</SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                        {errors.instructor_id && <p className="text-red-500 text-sm mt-1">{errors.instructor_id}</p>}
-                                    </div>
-                                )}
-
-                                {/* Dia da Semana */}
-                                <div>
-                                    <Label htmlFor="day_of_week" className="block text-sm font-medium text-gray-700">
-                                        Dia da Semana *
-                                    </Label>
-                                    <Select onValueChange={(value) => setData('day_of_week', value)} value={data.day_of_week}>
-                                        <SelectTrigger className={`mt-1 ${errors.day_of_week ? 'border-red-500' : ''}`}>
-                                            <SelectValue placeholder="Selecione o dia" />
+                                    <Select onValueChange={(value) => setData('instructor_id', value)} value={data.instructor_id}>
+                                        <SelectTrigger className={`mt-1 ${errors.instructor_id ? 'border-red-500' : ''}`}>
+                                            <SelectValue placeholder="Selecione um instrutor" />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {daysOfWeek.map((day) => (
-                                                <SelectItem key={day.value} value={day.value}>{day.label}</SelectItem>
+                                            {instructors.map((instructor) => (
+                                                <SelectItem key={instructor.id} value={instructor.id.toString()}>{instructor.name}</SelectItem>
                                             ))}
                                         </SelectContent>
                                     </Select>
-                                    {errors.day_of_week && <p className="text-red-500 text-sm mt-1">{errors.day_of_week}</p>}
+                                    {errors.instructor_id && <p className="text-red-500 text-sm mt-1">{errors.instructor_id}</p>}
                                 </div>
+                            )}
 
-                                {/* Horários */}
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <div>
-                                        <Label htmlFor="start_time" className="block text-sm font-medium text-gray-700">
-                                            Hora de Início *
-                                        </Label>
-                                        <Input 
-                                            id="start_time" 
-                                            type="time" 
-                                            value={data.start_time} 
-                                            onChange={(e) => handleStartTimeChange(e.target.value)} 
-                                            className={`mt-1 ${errors.start_time ? 'border-red-500' : ''}`}
-                                            required 
-                                        />
-                                        {errors.start_time && <p className="text-red-500 text-sm mt-1">{errors.start_time}</p>}
-                                    </div>
-                                    <div>
-                                        <Label htmlFor="end_time" className="block text-sm font-medium text-gray-700">
-                                            Hora de Fim *
-                                        </Label>
-                                        <Input 
-                                            id="end_time" 
-                                            type="time" 
-                                            value={data.end_time} 
-                                            onChange={(e) => setData('end_time', e.target.value)} 
-                                            className={`mt-1 ${errors.end_time ? 'border-red-500' : ''}`}
-                                            required 
-                                        />
-                                        {errors.end_time && <p className="text-red-500 text-sm mt-1">{errors.end_time}</p>}
-                                        <p className="text-sm text-gray-500 mt-1">Auto-preenchido (+1h do início)</p>
-                                    </div>
-                                </div>
-                                
-                                {/* Datas de Validade - Auto-preenchidas */}
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <div>
-                                        <Label htmlFor="start_date" className="block text-sm font-medium text-gray-700">
-                                            Data de Início *
-                                        </Label>
-                                        <DatePicker
-                                            value={data.start_date}
-                                            onChange={(date) => setData('start_date', date ? date.toISOString().split('T')[0] : '')}
-                                            placeholder="Selecione a data de início"
-                                            className={`mt-1 ${errors.start_date ? 'border-red-500' : ''}`}
-                                        />
-                                        {errors.start_date && <p className="text-red-500 text-sm mt-1">{errors.start_date}</p>}
-                                        <p className="text-sm text-gray-500 mt-1">Auto-preenchido (1º dia do mês)</p>
-                                    </div>
-                                    <div>
-                                        <Label htmlFor="end_date" className="block text-sm font-medium text-gray-700">
-                                            Data de Fim
-                                        </Label>
-                                        <DatePicker
-                                            value={data.end_date}
-                                            onChange={(date) => setData('end_date', date ? date.toISOString().split('T')[0] : '')}
-                                            placeholder="Selecione a data de fim"
-                                            className={`mt-1 ${errors.end_date ? 'border-red-500' : ''}`}
-                                        />
-                                        {errors.end_date && <p className="text-red-500 text-sm mt-1">{errors.end_date}</p>}
-                                        <p className="text-sm text-gray-500 mt-1">Auto-preenchido (último dia do mês)</p>
-                                    </div>
-                                </div>
+                            {/* Dia da Semana */}
+                            <div>
+                                <Label htmlFor="day_of_week" className="block text-sm font-medium text-gray-700">
+                                    Dia da Semana *
+                                </Label>
+                                <Select onValueChange={(value) => setData('day_of_week', value)} value={data.day_of_week}>
+                                    <SelectTrigger className={`mt-1 ${errors.day_of_week ? 'border-red-500' : ''}`}>
+                                        <SelectValue placeholder="Selecione o dia" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {daysOfWeek.map((day) => (
+                                            <SelectItem key={day.value} value={day.value}>{day.label}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                {errors.day_of_week && <p className="text-red-500 text-sm mt-1">{errors.day_of_week}</p>}
+                            </div>
 
-                                {/* Máximo de Alunos - Fixado em 5 */}
+                            {/* Horários */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div>
-                                    <Label htmlFor="max_students" className="block text-sm font-medium text-gray-700">
-                                        Máximo de Alunos
+                                    <Label htmlFor="start_time" className="block text-sm font-medium text-gray-700">
+                                        Hora de Início *
                                     </Label>
                                     <Input 
-                                        id="max_students" 
-                                        type="number" 
-                                        value={5} 
-                                        disabled 
-                                        className="mt-1 bg-gray-100 cursor-not-allowed" 
+                                        id="start_time" 
+                                        type="time" 
+                                        value={data.start_time} 
+                                        onChange={(e) => handleStartTimeChange(e.target.value)} 
+                                        className={`mt-1 ${errors.start_time ? 'border-red-500' : ''}`}
+                                        required 
                                     />
-                                    <p className="text-sm text-gray-500 mt-1">Fixado em 5 alunos por aula</p>
-                                    {errors.max_students && <p className="text-red-500 text-sm mt-1">{errors.max_students}</p>}
+                                    {errors.start_time && <p className="text-red-500 text-sm mt-1">{errors.start_time}</p>}
                                 </div>
-                                
-                                {/* Opções */}
-                                <div className="space-y-3">
-                                    <div className="flex items-center space-x-2">
-                                        <Checkbox 
-                                            id="auto_replicate_students" 
-                                            checked={data.auto_replicate_students} 
-                                            onCheckedChange={(checked) => setData('auto_replicate_students', checked === true)} 
-                                        />
-                                        <Label htmlFor="auto_replicate_students" className="text-sm font-medium text-gray-700">
-                                            Replicar lista de alunos da semana anterior automaticamente
-                                        </Label>
-                                    </div>
-                                    <div className="flex items-center space-x-2">
-                                        <Checkbox 
-                                            id="is_active" 
-                                            checked={data.is_active} 
-                                            onCheckedChange={(checked) => setData('is_active', checked === true)} 
-                                        />
-                                        <Label htmlFor="is_active" className="text-sm font-medium text-gray-700">
-                                            Ativar esta recorrência
-                                        </Label>
-                                    </div>
+                                <div>
+                                    <Label htmlFor="end_time" className="block text-sm font-medium text-gray-700">
+                                        Hora de Fim *
+                                    </Label>
+                                    <Input 
+                                        id="end_time" 
+                                        type="time" 
+                                        value={data.end_time} 
+                                        onChange={(e) => setData('end_time', e.target.value)} 
+                                        className={`mt-1 ${errors.end_time ? 'border-red-500' : ''}`}
+                                        required 
+                                    />
+                                    {errors.end_time && <p className="text-red-500 text-sm mt-1">{errors.end_time}</p>}
+                                    <p className="text-sm text-gray-500 mt-1">Auto-preenchido (+1h do início)</p>
                                 </div>
-                                
-                                <div className="flex items-center justify-end gap-4 pt-6">
-                                    <Link 
-                                        href={route('recurring-classes.index')} 
-                                        className="text-sm text-gray-600 hover:text-gray-900 hover:underline"
-                                    >
-                                        Cancelar
-                                    </Link>
-                                    <Button type="submit" disabled={processing}>
-                                        {processing ? 'Salvando...' : 'Salvar e Gerar Recorrências'}
-                                    </Button>
+                            </div>
+                            
+                            {/* Datas de Validade - Auto-preenchidas */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <Label htmlFor="start_date" className="block text-sm font-medium text-gray-700">
+                                        Data de Início *
+                                    </Label>
+                                    <DatePicker
+                                        value={data.start_date}
+                                        onChange={(date) => setData('start_date', date ? date.toISOString().split('T')[0] : '')}
+                                        placeholder="Selecione a data de início"
+                                        className={`mt-1 ${errors.start_date ? 'border-red-500' : ''}`}
+                                    />
+                                    {errors.start_date && <p className="text-red-500 text-sm mt-1">{errors.start_date}</p>}
+                                    <p className="text-sm text-gray-500 mt-1">Auto-preenchido (1º dia do mês)</p>
                                 </div>
-                            </form>
-                        </div>
+                                <div>
+                                    <Label htmlFor="end_date" className="block text-sm font-medium text-gray-700">
+                                        Data de Fim
+                                    </Label>
+                                    <DatePicker
+                                        value={data.end_date}
+                                        onChange={(date) => setData('end_date', date ? date.toISOString().split('T')[0] : '')}
+                                        placeholder="Selecione a data de fim"
+                                        className={`mt-1 ${errors.end_date ? 'border-red-500' : ''}`}
+                                    />
+                                    {errors.end_date && <p className="text-red-500 text-sm mt-1">{errors.end_date}</p>}
+                                    <p className="text-sm text-gray-500 mt-1">Auto-preenchido (último dia do mês)</p>
+                                </div>
+                            </div>
+
+                            {/* Máximo de Alunos - Fixado em 5 */}
+                            <div>
+                                <Label htmlFor="max_students" className="block text-sm font-medium text-gray-700">
+                                    Máximo de Alunos
+                                </Label>
+                                <Input 
+                                    id="max_students" 
+                                    type="number" 
+                                    value={5} 
+                                    disabled 
+                                    className="mt-1 bg-gray-100 cursor-not-allowed" 
+                                />
+                                <p className="text-sm text-gray-500 mt-1">Fixado em 5 alunos por aula</p>
+                                {errors.max_students && <p className="text-red-500 text-sm mt-1">{errors.max_students}</p>}
+                            </div>
+                            
+                            {/* Opções */}
+                            <div className="space-y-3">
+                                <div className="flex items-center space-x-2">
+                                    <Checkbox 
+                                        id="auto_replicate_students" 
+                                        checked={!!data.auto_replicate_students as boolean} 
+                                        onCheckedChange={checked => setData('auto_replicate_students', checked === true)} 
+                                    />
+                                    <Label htmlFor="auto_replicate_students" className="text-sm font-medium text-gray-700">
+                                        Replicar lista de alunos da semana anterior automaticamente
+                                    </Label>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                    <Checkbox 
+                                        id="is_active" 
+                                        checked={!!data.is_active as boolean} 
+                                        onCheckedChange={checked => setData('is_active', checked === true)} 
+                                    />
+                                    <Label htmlFor="is_active" className="text-sm font-medium text-gray-700">
+                                        Ativar esta recorrência
+                                    </Label>
+                                </div>
+                            </div>
+                            
+                            <div className="flex items-center justify-end gap-4 pt-6">
+                                <Link 
+                                    href={route('recurring-classes.index')} 
+                                    className="text-sm text-gray-600 hover:text-gray-900 hover:underline"
+                                >
+                                    Cancelar
+                                </Link>
+                                <Button type="submit" disabled={processing}>
+                                    {processing ? 'Salvando...' : 'Salvar e Gerar Recorrências'}
+                                </Button>
+                            </div>
+                        </form>
                     </div>
                 </div>
             </div>

@@ -85,7 +85,12 @@ class ClassModel extends Model
     // Methods
     public function hasSpace(): bool
     {
-        return $this->students()->count() < $this->max_students;
+        // Use the loaded relationship if available, otherwise query
+        $studentsCount = $this->relationLoaded('students') 
+            ? $this->students->count() 
+            : $this->students()->count();
+            
+        return $studentsCount < $this->max_students;
     }
 
     public function canAddStudent(): bool
@@ -95,7 +100,7 @@ class ClassModel extends Model
 
     public function getDurationInMinutes(): int
     {
-        return $this->start_time->diffInMinutes($this->end_time);
+        return (int) $this->start_time->diffInMinutes($this->end_time);
     }
 
     public function getEnrolledStudentsCount(): int

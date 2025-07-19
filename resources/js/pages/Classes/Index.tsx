@@ -6,10 +6,12 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Plus, Calendar, Eye, Edit, Trash2, Clock, Users, CheckCircle, XCircle, Filter } from 'lucide-react';
+import { format } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
 import SuccessAlert from '@/components/success-alert';
 import { PageProps } from '@/types';
 import { type BreadcrumbItem } from '@/types';
+import { Pagination } from '@/components/ui/pagination';
 
 interface ClassItem {
     id: number;
@@ -31,11 +33,23 @@ interface ClassItem {
     }>;
 }
 
+interface PaginatedClasses {
+    data: ClassItem[];
+    current_page: number;
+    last_page: number;
+    per_page: number;
+    total: number;
+    from: number;
+    to: number;
+    links: Array<{
+        url: string | null;
+        label: string;
+        active: boolean;
+    }>;
+}
+
 interface ClassesIndexProps extends PageProps {
-    classes: {
-        data: ClassItem[];
-        links: any[];
-    };
+    classes: PaginatedClasses;
     instructors: Array<{
         id: number;
         name: string;
@@ -88,7 +102,7 @@ export default function Index({ classes, instructors, filters, can, flash }: Cla
     };
 
     // Calcular estatísticas
-    const totalClasses = classes.data.length;
+    const totalClasses = classes.total;
     const scheduledClasses = classes.data.filter(classItem => classItem.status.value === 'scheduled').length;
     const completedClasses = classes.data.filter(classItem => classItem.status.value === 'completed').length;
     const cancelledClasses = classes.data.filter(classItem => classItem.status.value === 'cancelled').length;
@@ -294,8 +308,8 @@ export default function Index({ classes, instructors, filters, can, flash }: Cla
                                                 <tr key={classItem.id} className="border-b hover:bg-muted/50">
                                                     <td className="p-4 font-medium">{classItem.title}</td>
                                                     <td className="p-4">
-                                                        <div className="text-sm">
-                                                            {classItem.start_time} - {classItem.end_time}
+                                                        <div className="text-sm whitespace-nowrap">
+                                                            {format(new Date(classItem.start_time), 'dd/MM/yyyy HH:mm')} - {format(new Date(classItem.end_time), 'HH:mm')}
                                                         </div>
                                                     </td>
                                                     <td className="p-4">{classItem.instructor.name}</td>
@@ -340,6 +354,13 @@ export default function Index({ classes, instructors, filters, can, flash }: Cla
                                     </table>
                                 </div>
                             </div>
+                        </CardContent>
+                        <CardContent>
+                            <Pagination 
+                                type="server" 
+                                data={classes} 
+                                itemName="aulas" 
+                            />
                         </CardContent>
                     </Card>
             </div>

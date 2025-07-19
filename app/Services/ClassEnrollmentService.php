@@ -128,12 +128,12 @@ class ClassEnrollmentService
         }
 
         // Verificar duração mínima (30 minutos)
-        if ($startTime->diffInMinutes($endTime) < 30) {
+        if ((int) $startTime->diffInMinutes($endTime) < 30) {
             $errors[] = 'A aula deve ter duração mínima de 30 minutos.';
         }
 
         // Verificar duração máxima (120 minutos)
-        if ($startTime->diffInMinutes($endTime) > 120) {
+        if ((int) $startTime->diffInMinutes($endTime) > 120) {
             $errors[] = 'A aula deve ter duração máxima de 2 horas.';
         }
 

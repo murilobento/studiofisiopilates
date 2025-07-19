@@ -43,6 +43,7 @@ import {
     AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { type BreadcrumbItem } from '@/types';
+import { Pagination } from '@/components/ui/pagination';
 
 interface Instructor {
     id: number;
@@ -406,28 +407,11 @@ const Index: React.FC<UsersIndexProps> = ({ auth, users, filters }) => {
                                 </Table>
                             </div>
 
-                            {/* Paginação */}
-                            <div className="flex items-center justify-between space-x-2 py-4">
-                                <div className="flex-1 text-sm text-muted-foreground">
-                                    Mostrando {users.from} até {users.to} de {users.total} usuários
-                                </div>
-                                <div className="flex items-center space-x-2">
-                                    {users.links.map((link, index) => (
-                                        <Button
-                                            key={index}
-                                            variant={link.active ? "default" : "outline"}
-                                            size="sm"
-                                            onClick={() => {
-                                                if (link.url) {
-                                                    router.get(link.url);
-                                                }
-                                            }}
-                                            disabled={!link.url}
-                                            dangerouslySetInnerHTML={{ __html: link.label }}
-                                        />
-                                    ))}
-                                </div>
-                            </div>
+                            <Pagination 
+                                type="server" 
+                                data={users} 
+                                itemName="usuários" 
+                            />
                         </CardContent>
                     </Card>
             </div>

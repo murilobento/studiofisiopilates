@@ -88,6 +88,18 @@ class User extends Authenticatable
         return $this->hasMany(Student::class, 'instructor_id');
     }
 
+    public function monthlyPayments(): HasMany
+    {
+        return $this->hasMany(MonthlyPayment::class, 'instructor_id');
+    }
+
+    public function currentMonthPayments(): HasMany
+    {
+        return $this->hasMany(MonthlyPayment::class, 'instructor_id')
+                    ->whereMonth('reference_month', now()->month)
+                    ->whereYear('reference_month', now()->year);
+    }
+
     // Helper methods
     public function isAdmin(): bool
     {

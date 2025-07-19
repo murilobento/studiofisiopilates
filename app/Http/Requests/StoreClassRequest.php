@@ -7,9 +7,12 @@ use App\Services\ClassEnrollmentService;
 use Carbon\Carbon;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
+use App\Http\Requests\Traits\NormalizesDates;
 
 class StoreClassRequest extends FormRequest
 {
+    use NormalizesDates;
+
     /**
      * Determine if the user is authorized to make this request.
      */
@@ -87,6 +90,10 @@ class StoreClassRequest extends FormRequest
      */
     protected function prepareForValidation()
     {
+        // Normalizar datas/horários antes de qualquer outra lógica
+        $this->dateTimeFields = ['start_time', 'end_time'];
+        $this->normalizeDates();
+
         // Se for instrutor, definir o instructor_id automaticamente
         if (Auth::user()->role === UserRole::INSTRUCTOR) {
             $this->merge([

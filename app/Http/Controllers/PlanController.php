@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StorePlanRequest;
+use App\Http\Requests\UpdatePlanRequest;
 use App\Models\Plan;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -21,15 +23,9 @@ class PlanController extends Controller
         return Inertia::render('Plans/Create');
     }
 
-    public function store(Request $request)
+    public function store(StorePlanRequest $request)
     {
-        $request->validate([
-            'description' => 'required|string|max:255',
-            'frequency' => 'required|integer',
-            'price' => 'required|numeric',
-        ]);
-
-        Plan::create($request->all());
+        Plan::create($request->validated());
 
         return redirect()->route('plans.index')->with('success', 'Plano criado com sucesso!');
     }
@@ -41,15 +37,9 @@ class PlanController extends Controller
         ]);
     }
 
-    public function update(Request $request, Plan $plan)
+    public function update(UpdatePlanRequest $request, Plan $plan)
     {
-        $request->validate([
-            'description' => 'required|string|max:255',
-            'frequency' => 'required|integer',
-            'price' => 'required|numeric',
-        ]);
-
-        $plan->update($request->all());
+        $plan->update($request->validated());
 
         return redirect()->route('plans.index')->with('success', 'Plano atualizado com sucesso!');
     }

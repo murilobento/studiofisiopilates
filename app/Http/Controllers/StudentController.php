@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Enums\UserRole;
+use App\Http\Requests\StoreStudentRequest;
+use App\Http\Requests\UpdateStudentRequest;
 use App\Models\Student;
 use App\Models\Plan;
 use App\Models\User;
@@ -12,21 +14,38 @@ use Inertia\Inertia;
 
 class StudentController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         $user = Auth::user();
-        $query = Student::with(['plan', 'instructor']);
+        $query = Student::with(['plan:id,description,price', 'instructor:id,name']);
 
         // Se for instrutor, mostrar apenas seus alunos
         if ($user->role === UserRole::INSTRUCTOR) {
             $query->where('instructor_id', $user->id);
         }
 
-        $students = $query->select('id', 'name', 'email', 'phone', 'plan_id', 'custom_price', 'status', 'cpf', 'city', 'instructor_id')
-            ->get();
+        // Filtros opcionais
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%")
+                  ->orWhere('cpf', 'like', "%{$search}%");
+            });
+        }
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        $students = $query->select('id', 'name', 'email', 'phone', 'plan_id', 'custom_price', 'status', 'cpf', 'city', 'instructor_id', 'birth_date')
+            ->orderBy('name')
+            ->paginate(15)
+            ->withQueryString();
 
         return Inertia::render('Students/Index', [
             'students' => $students,
+            'filters' => $request->only(['search', 'status']),
             'can' => [
                 'chooseInstructor' => $user->role === UserRole::ADMIN,
             ],
@@ -50,44 +69,9 @@ class StudentController extends Controller
         ]);
     }
 
-    public function store(Request $request)
+    public function store(StoreStudentRequest $request)
     {
-        $user = Auth::user();
-        
-        $validationRules = [
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:students',
-            'phone' => 'nullable|string|max:20',
-            'plan_id' => 'required|exists:plans,id',
-            'custom_price' => 'nullable|numeric',
-            'status' => 'required|in:ativo,inativo',
-            'street' => 'nullable|string|max:255',
-            'number' => 'nullable|string|max:20',
-            'neighborhood' => 'nullable|string|max:255',
-            'city' => 'nullable|string|max:255',
-            'state' => 'nullable|string|max:2',
-            'zip_code' => 'nullable|string|max:10',
-            'gender' => 'nullable|in:masculino,feminino,outro',
-            'cpf' => 'nullable|string|max:14|unique:students',
-            'medical_conditions' => 'nullable|string',
-            'medications' => 'nullable|string',
-            'allergies' => 'nullable|string',
-            'pilates_goals' => 'nullable|string',
-            'physical_activity_history' => 'nullable|string',
-            'general_notes' => 'nullable|string',
-        ];
-
-        // Admin pode escolher instrutor, instrutor fica fixo no próprio
-        if ($user->role === UserRole::ADMIN) {
-            $validationRules['instructor_id'] = 'nullable|exists:users,id';
-        }
-
-        $validated = $request->validate($validationRules);
-
-        // Se for instrutor, forçar o instructor_id para o próprio usuário
-        if ($user->role === UserRole::INSTRUCTOR) {
-            $validated['instructor_id'] = $user->id;
-        }
+        $validated = $request->validated();
 
         Student::create($validated);
 
@@ -118,47 +102,12 @@ class StudentController extends Controller
         ]);
     }
 
-    public function update(Request $request, Student $student)
+    public function update(UpdateStudentRequest $request, Student $student)
     {
-        $user = Auth::user();
-        
-        // Se for instrutor, só pode editar seus próprios alunos
-        if ($user->role === UserRole::INSTRUCTOR && $student->instructor_id !== $user->id) {
-            abort(403, 'Você só pode editar seus próprios alunos.');
-        }
-
-        $validationRules = [
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:students,email,' . $student->id,
-            'phone' => 'nullable|string|max:20',
-            'plan_id' => 'required|exists:plans,id',
-            'custom_price' => 'nullable|numeric',
-            'status' => 'required|in:ativo,inativo',
-            'street' => 'nullable|string|max:255',
-            'number' => 'nullable|string|max:20',
-            'neighborhood' => 'nullable|string|max:255',
-            'city' => 'nullable|string|max:255',
-            'state' => 'nullable|string|max:2',
-            'zip_code' => 'nullable|string|max:10',
-            'gender' => 'nullable|in:masculino,feminino,outro',
-            'cpf' => 'nullable|string|max:14|unique:students,cpf,' . $student->id,
-            'medical_conditions' => 'nullable|string',
-            'medications' => 'nullable|string',
-            'allergies' => 'nullable|string',
-            'pilates_goals' => 'nullable|string',
-            'physical_activity_history' => 'nullable|string',
-            'general_notes' => 'nullable|string',
-        ];
-
-        // Admin pode alterar instrutor, instrutor não pode
-        if ($user->role === UserRole::ADMIN) {
-            $validationRules['instructor_id'] = 'nullable|exists:users,id';
-        }
-
-        $validated = $request->validate($validationRules);
+        $validated = $request->validated();
 
         // Se for instrutor, não permite alterar o instructor_id
-        if ($user->role === UserRole::INSTRUCTOR) {
+        if (Auth::user()->role === UserRole::INSTRUCTOR) {
             unset($validated['instructor_id']);
         }
 

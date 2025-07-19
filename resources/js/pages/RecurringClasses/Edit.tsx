@@ -96,34 +96,31 @@ export default function Edit({ recurringClass, instructors, can }: EditProps) {
     return (
         <AuthenticatedLayout breadcrumbs={breadcrumbs(recurringClass)}>
             <Head title={`Editar ${recurringClass.title}`} />
-            
-            <div className="py-12">
-                <div className="flex h-full flex-1 flex-col gap-4 p-4 sm:gap-6 sm:p-6">
-                    <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                        <div className="p-6 text-gray-900">
-                            <div className="flex items-center justify-between mb-6">
-                                <div className="flex items-center gap-4">
-                                    <Link
-                                        href={route('recurring-classes.index')}
-                                        className="inline-flex items-center px-4 py-2 bg-white border border-gray-300 rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-25 transition ease-in-out duration-150"
-                                    >
-                                        <ArrowLeft className="h-4 w-4 mr-2" />
-                                        Voltar
-                                    </Link>
-                                    <div>
-                                        <h3 className="text-lg font-medium text-gray-900">Editar Aula Recorrente</h3>
-                                        <p className="text-sm text-gray-600">Modificar horário fixo na grade</p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                                <p className="text-sm text-yellow-800">
-                                    <strong>Atenção:</strong> Ao salvar as alterações, todas as aulas futuras vinculadas a este horário serão removidas e novas aulas serão geradas com base nas novas configurações.
-                                </p>
-                            </div>
-
-                            <form onSubmit={submit} className="space-y-6">
+            <div className="flex h-full flex-1 flex-col gap-4 p-4 sm:gap-6 sm:p-6">
+                {/* Header */}
+                <div className="flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0 mb-4">
+                    <div>
+                        <h1 className="text-2xl font-bold tracking-tight">Editar Aula Recorrente</h1>
+                        <p className="text-muted-foreground">Modificar horário fixo na grade</p>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                        <Link
+                            href={route('recurring-classes.index')}
+                            className="inline-flex items-center px-4 py-2 bg-white border border-gray-300 rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-25 transition ease-in-out duration-150"
+                        >
+                            <ArrowLeft className="h-4 w-4 mr-2" />
+                            Voltar
+                        </Link>
+                    </div>
+                </div>
+                {/* Aviso */}
+                <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                    <p className="text-sm text-yellow-800">
+                        <strong>Atenção:</strong> Ao salvar as alterações, todas as aulas futuras vinculadas a este horário serão removidas e novas aulas serão geradas com base nas novas configurações.
+                    </p>
+                </div>
+                {/* Formulário */}
+                <form onSubmit={submit} className="space-y-6">
                                 {/* Título */}
                                 <div>
                                     <Label htmlFor="title" className="block text-sm font-medium text-gray-700">
@@ -293,9 +290,6 @@ export default function Edit({ recurringClass, instructors, can }: EditProps) {
                                 </div>
                             </form>
                         </div>
-                    </div>
-                </div>
-            </div>
-        </AuthenticatedLayout>
+                    </AuthenticatedLayout>
     );
 }

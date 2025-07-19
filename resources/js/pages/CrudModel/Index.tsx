@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import AuthenticatedLayout from '@/layouts/app-layout';
-import { Head, Link } from '@inertiajs/react';
+import { Head } from '@inertiajs/react';
 import { DataTable } from "@/components/ui/data-table";
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -18,14 +18,7 @@ import {
     SelectTrigger, 
     SelectValue 
 } from '@/components/ui/select';
-import { 
-    Table, 
-    TableBody, 
-    TableCell, 
-    TableHead, 
-    TableHeader, 
-    TableRow 
-} from '@/components/ui/table';
+// ...existing code...
 import { 
     DropdownMenu,
     DropdownMenuContent,
@@ -66,189 +59,8 @@ import {
     CollapsibleContent,
     CollapsibleTrigger 
 } from '@/components/ui/collapsible';
-import { 
-    Plus, 
-    Search, 
-    Filter, 
-    MoreHorizontal, 
-    Edit, 
-    Trash2, 
-    Eye, 
-    Settings, 
-    Activity, 
-    Users, 
-    BarChart3,
-    ChevronDown,
-    ChevronUp,
-    Info,
-    CheckCircle,
-    XCircle,
-    AlertCircle,
-    PlusCircle,
-    Download,
-    Upload,
-    RefreshCw,
-    Star,
-    Heart,
-    Calendar,
-    Clock,
-    MapPin,
-    Phone,
-    Mail,
-    User,
-    Shield,
-    Target,
-    TrendingUp,
-    TrendingDown,
-    DollarSign,
-    Zap,
-    Award,
-    Bookmark,
-    CheckSquare,
-    X,
-    Check,
-    SlidersHorizontal,
-    PieChart,
-    BarChart,
-    LineChart,
-    Globe,
-    Lock,
-    Unlock,
-    Copy,
-    ExternalLink,
-    FileText,
-    Image,
-    Video,
-    Mic,
-    Camera,
-    Printer,
-    Share,
-    ThumbsUp,
-    ThumbsDown,
-    MessageSquare,
-    Send,
-    Paperclip,
-    Link2,
-    Archive,
-    Trash,
-    FolderOpen,
-    FileX,
-    FilePlus,
-    FileCheck,
-    Download2,
-    Upload2,
-    Database,
-    Server,
-    Wifi,
-    WifiOff,
-    Power,
-    PowerOff,
-    Cpu,
-    HardDrive,
-    Monitor,
-    Smartphone,
-    Tablet,
-    Laptop,
-    Desktop,
-    Mouse,
-    Keyboard,
-    Headphones,
-    Volume2,
-    VolumeX,
-    Play,
-    Pause,
-    Stop,
-    SkipBack,
-    SkipForward,
-    FastForward,
-    Rewind,
-    Repeat,
-    Shuffle,
-    Home,
-    Building,
-    ShoppingCart,
-    CreditCard,
-    Wallet,
-    Banknote,
-    Receipt,
-    Calculator,
-    Graph,
-    Compass,
-    Navigation,
-    Route,
-    Car,
-    Truck,
-    Plane,
-    Train,
-    Bus,
-    Bike,
-    Footprints,
-    Umbrella,
-    Sun,
-    Moon,
-    Cloud,
-    CloudRain,
-    CloudSnow,
-    CloudLightning,
-    Rainbow,
-    Thermometer,
-    Wind,
-    Sunset,
-    Sunrise,
-    Tree,
-    Leaf,
-    Flower,
-    Grass,
-    Mountain,
-    Waves,
-    Fish,
-    Bird,
-    Dog,
-    Cat,
-    Rabbit,
-    Turtle,
-    Butterfly,
-    Bug,
-    Worm,
-    Sprout,
-    Seedling,
-    Cherry,
-    Apple,
-    Banana,
-    Grape,
-    Orange,
-    Strawberry,
-    Carrot,
-    Corn,
-    Wheat,
-    Rice,
-    Bread,
-    Milk,
-    Cheese,
-    Egg,
-    Meat,
-    Soup,
-    Coffee,
-    Tea,
-    Beer,
-    Wine,
-    Cocktail,
-    Cake,
-    Cookie,
-    Candy,
-    Lollipop,
-    IceCream,
-    Pizza,
-    Burger,
-    Fries,
-    Popcorn,
-    Pretzel,
-    Sandwich,
-    Salad,
-    Taco,
-    Sushi,
-    Noodles,
-    Pasta
+import {
+  Plus, Search, Filter, MoreHorizontal, Edit, Trash2, Eye, Settings, Activity, Users, BarChart3, ChevronDown, ChevronUp, Info, CheckCircle, XCircle, AlertCircle, Download, Upload, RefreshCw, Star, Clock, SlidersHorizontal, DollarSign, Tag, Github, ExternalLink, Copy, AlignLeft, AlignCenter, AlignRight, Navigation, Check, X
 } from 'lucide-react';
 import { DatePicker } from '@/components/ui/date-picker';
 import { DateTimePicker } from '@/components/ui/datetime-picker';
@@ -288,8 +100,7 @@ import {
     BreadcrumbPage,
     BreadcrumbSeparator 
 } from '@/components/ui/breadcrumb';
-import { PageProps } from '@/types';
-import { type BreadcrumbItem as BreadcrumbType } from '@/types';
+import { PageProps, BreadcrumbItem as BreadcrumbType } from '@/types';
 import { ColumnDef, getCoreRowModel, getFilteredRowModel, getPaginationRowModel, getSortedRowModel, useReactTable } from '@tanstack/react-table';
 
 // Tipos mockados para o CRUD
@@ -786,12 +597,12 @@ const Index: React.FC<CrudIndexProps> = ({ auth }) => {
                                 
                                 <div>
                                     <Label htmlFor="demo-date">Date Picker</Label>
-                                    <DatePicker date={selectedDate} onDateChange={setSelectedDate} />
+                                    <DatePicker value={selectedDate} onChange={setSelectedDate} />
                                 </div>
                                 
                                 <div>
                                     <Label htmlFor="demo-datetime">DateTime Picker</Label>
-                                    <DateTimePicker date={selectedDateTime} onDateChange={setSelectedDateTime} />
+                                    <DateTimePicker value={selectedDateTime} onChange={setSelectedDateTime} />
                                 </div>
                             </div>
                             
@@ -819,7 +630,7 @@ const Index: React.FC<CrudIndexProps> = ({ auth }) => {
                                     <Checkbox 
                                         id="demo-checkbox" 
                                         checked={checkboxValue} 
-                                        onCheckedChange={setCheckboxValue} 
+                                        onCheckedChange={(checked) => setCheckboxValue(checked === true)} 
                                     />
                                     <Label htmlFor="demo-checkbox">Checkbox</Label>
                                 </div>
@@ -1068,7 +879,7 @@ const Index: React.FC<CrudIndexProps> = ({ auth }) => {
                                     
                                     <div>
                                         <Label htmlFor="date-filter">Data</Label>
-                                        <DatePicker date={selectedDate} onDateChange={setSelectedDate} />
+                                        <DatePicker value={selectedDate} onChange={setSelectedDate} />
                                     </div>
                                 </div>
                             )}

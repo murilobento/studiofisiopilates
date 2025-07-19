@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import AuthenticatedLayout from '@/layouts/app-layout';
-import { Head, Link, useForm } from '@inertiajs/react';
+import { Head, Link, useForm, router } from '@inertiajs/react';
 import { DataTable } from "@/components/ui/data-table";
 import { columns, Student } from "./components/columns";
 import { Input } from '@/components/ui/input';
@@ -8,18 +8,38 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Plus, Search, Users, UserCheck, UserX, Filter } from 'lucide-react';
-import { ColumnFiltersState, SortingState, VisibilityState, getCoreRowModel, getFilteredRowModel, getPaginationRowModel, getSortedRowModel, useReactTable } from "@tanstack/react-table";
+import { ColumnFiltersState, SortingState, VisibilityState, getCoreRowModel, getFilteredRowModel, getSortedRowModel, useReactTable } from "@tanstack/react-table";
 import SuccessAlert from '@/components/success-alert';
 import { PageProps } from '@/types';
 import { type BreadcrumbItem } from '@/types';
+import { Pagination } from '@/components/ui/pagination';
 
 interface Plan {
     id: number;
     description: string;
 }
 
+interface PaginatedData<T> {
+    data: T[];
+    current_page: number;
+    per_page: number;
+    total: number;
+    last_page: number;
+    from: number;
+    to: number;
+    links: Array<{
+        url: string | null;
+        label: string;
+        active: boolean;
+    }>;
+}
+
 interface StudentsIndexProps extends PageProps {
-    students: Student[];
+    students: PaginatedData<Student>;
+    filters?: {
+        search?: string;
+        status?: string;
+    };
     flash?: {
         message?: string;
         success?: string;
@@ -38,13 +58,73 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-const Index: React.FC<StudentsIndexProps> = ({ auth, students, flash }) => {
+const Index: React.FC<StudentsIndexProps> = ({ auth, students, filters, flash }) => {
     const { delete: destroy } = useForm();
+    const { data, setData, get } = useForm({
+        search: filters?.search || '',
+        status: filters?.status || '',
+    });
     const [sorting, setSorting] = useState<SortingState>([]);
     const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
     const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
     const [rowSelection, setRowSelection] = useState({});
     const [globalFilter, setGlobalFilter] = useState('');
+
+    const handleSearch = () => {
+        router.get(route('students.index'), {
+            search: data.search,
+            status: data.status,
+        }, {
+            preserveState: true,
+            preserveScroll: true,
+        });
+    };
+
+    const handleFilterChange = (field: 'search' | 'status', value: string) => {
+        setData(field, value);
+        
+        // Auto-submit when status changes
+        if (field === 'status') {
+            router.get(route('students.index'), {
+                search: data.search,
+                status: value,
+            }, {
+                preserveState: true,
+                preserveScroll: true,
+            });
+        }
+    };
+
+    const clearFilters = () => {
+        setData({ search: '', status: '' });
+        router.get(route('students.index'), {}, {
+            preserveState: true,
+            preserveScroll: true,
+        });
+    };
+
+    const goToPage = (page: number) => {
+        router.get(route('students.index'), {
+            page,
+            search: data.search,
+            status: data.status,
+        }, {
+            preserveState: true,
+            preserveScroll: true,
+        });
+    };
+
+    const nextPage = () => {
+        if (students.current_page < students.last_page) {
+            goToPage(students.current_page + 1);
+        }
+    };
+
+    const previousPage = () => {
+        if (students.current_page > 1) {
+            goToPage(students.current_page - 1);
+        }
+    };
 
     const handleDelete = (studentId: number) => {
         console.log('Iniciando delete do aluno:', studentId);
@@ -61,13 +141,11 @@ const Index: React.FC<StudentsIndexProps> = ({ auth, students, flash }) => {
     const tableColumns = columns(handleDelete);
 
     const table = useReactTable({
-        data: students,
+        data: students.data,
         columns: tableColumns,
         onSortingChange: setSorting,
         onColumnFiltersChange: setColumnFilters,
-        onGlobalFilterChange: setGlobalFilter,
         getCoreRowModel: getCoreRowModel(),
-        getPaginationRowModel: getPaginationRowModel(),
         getSortedRowModel: getSortedRowModel(),
         getFilteredRowModel: getFilteredRowModel(),
         onColumnVisibilityChange: setColumnVisibility,
@@ -77,17 +155,17 @@ const Index: React.FC<StudentsIndexProps> = ({ auth, students, flash }) => {
             columnFilters,
             columnVisibility,
             rowSelection,
-            globalFilter,
         },
         enableColumnFilters: true,
         globalFilterFn: 'includesString',
+        manualPagination: true,
+        pageCount: students.last_page,
     });
 
     // Calcular estatísticas
-    const totalStudents = students.length;
-    const activeStudents = students.filter(student => student.status === 'active').length;
-    const inactiveStudents = students.filter(student => student.status === 'inactive').length;
-    const cancelledStudents = students.filter(student => student.status === 'cancelled').length;
+    const totalStudents = students.total;
+    const activeStudents = students.data.filter(student => student.status === 'ativo').length;
+    const inactiveStudents = students.data.filter(student => student.status === 'inativo').length;
 
     return (
         <AuthenticatedLayout breadcrumbs={breadcrumbs}>
@@ -161,13 +239,13 @@ const Index: React.FC<StudentsIndexProps> = ({ auth, students, flash }) => {
                     
                     <Card>
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">Cancelados</CardTitle>
-                            <UserX className="h-4 w-4 text-red-600" />
+                            <CardTitle className="text-sm font-medium">Exibindo</CardTitle>
+                            <Filter className="h-4 w-4 text-blue-600" />
                         </CardHeader>
                         <CardContent>
-                            <div className="text-2xl font-bold text-red-600">{cancelledStudents}</div>
+                            <div className="text-2xl font-bold text-blue-600">{students.data.length}</div>
                             <p className="text-xs text-muted-foreground">
-                                Com matrícula cancelada
+                                de {students.total} total
                             </p>
                         </CardContent>
                     </Card>
@@ -187,48 +265,43 @@ const Index: React.FC<StudentsIndexProps> = ({ auth, students, flash }) => {
                             <div className="relative flex-1 max-w-sm">
                                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                                 <Input
-                                    placeholder="Pesquisar por nome, telefone ou status..."
-                                    value={globalFilter ?? ""}
-                                    onChange={(event) => setGlobalFilter(event.target.value)}
+                                    placeholder="Pesquisar por nome, email ou CPF..."
+                                    value={data.search}
+                                    onChange={(e) => setData('search', e.target.value)}
+                                    onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                                     className="pl-10"
                                 />
                             </div>
-                            <Button variant="outline" size="sm">
-                                <Filter className="h-4 w-4 mr-2" />
-                                Filtros
+                            <Button variant="outline" size="sm" onClick={handleSearch}>
+                                <Search className="h-4 w-4 mr-2" />
+                                Buscar
                             </Button>
+                            <select
+                                value={data.status}
+                                onChange={(e) => handleFilterChange('status', e.target.value)}
+                                className="px-3 py-2 border border-gray-300 rounded-md text-sm"
+                            >
+                                <option value="">Todos os status</option>
+                                <option value="ativo">Ativo</option>
+                                <option value="inativo">Inativo</option>
+                            </select>
+                            {(data.search || data.status) && (
+                                <Button variant="outline" size="sm" onClick={clearFilters}>
+                                    Limpar
+                                </Button>
+                            )}
                         </div>
 
                         {/* Tabela */}
                         <div className="rounded-md border">
-                            <DataTable columns={tableColumns} data={students} table={table} />
+                            <DataTable columns={tableColumns} data={students.data} table={table} />
                         </div>
 
-                        {/* Paginação */}
-                        <div className="flex items-center justify-between space-x-2 py-4">
-                            <div className="flex-1 text-sm text-muted-foreground">
-                                {table.getFilteredSelectedRowModel().rows.length} de{" "}
-                                {table.getFilteredRowModel().rows.length} linha(s) selecionada(s).
-                            </div>
-                            <div className="flex items-center space-x-2">
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => table.previousPage()}
-                                    disabled={!table.getCanPreviousPage()}
-                                >
-                                    Anterior
-                                </Button>
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => table.nextPage()}
-                                    disabled={!table.getCanNextPage()}
-                                >
-                                    Próximo
-                                </Button>
-                            </div>
-                        </div>
+                        <Pagination 
+                            type="server" 
+                            data={students} 
+                            itemName="alunos" 
+                        />
                     </CardContent>
                 </Card>
             </div>

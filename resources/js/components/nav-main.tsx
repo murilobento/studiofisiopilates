@@ -32,7 +32,7 @@ export function NavMain({ items = [] }: { items: NavItem[] }) {
             <SidebarGroup className="px-2 py-0">
                 <Collapsible open={isAgendaOpen} onOpenChange={setIsAgendaOpen}>
                     <CollapsibleTrigger asChild>
-                        <SidebarGroupLabel className="cursor-pointer hover:bg-sidebar-accent hover:text-sidebar-accent-foreground text-sm text-sidebar-foreground font-normal">
+                        <SidebarGroupLabel className="gap-2 cursor-pointer hover:bg-sidebar-accent hover:text-sidebar-accent-foreground text-sm text-sidebar-foreground font-normal">
                             <Calendar className="mr-2" />
                             <span>Agenda</span>
                             <ChevronDown className={`ml-auto h-4 w-4 transition-transform ${isAgendaOpen ? 'rotate-180' : ''}`} />
@@ -74,7 +74,7 @@ export function NavMain({ items = [] }: { items: NavItem[] }) {
             <SidebarGroup className="px-2 py-0">
                 <Collapsible open={isCadastrosOpen} onOpenChange={setIsCadastrosOpen}>
                     <CollapsibleTrigger asChild>
-                        <SidebarGroupLabel className="cursor-pointer hover:bg-sidebar-accent hover:text-sidebar-accent-foreground text-sm text-sidebar-foreground font-normal">
+                        <SidebarGroupLabel className="gap-2 cursor-pointer hover:bg-sidebar-accent hover:text-sidebar-accent-foreground text-sm text-sidebar-foreground font-normal">
                             <CirclePlus className="mr-2" />
                             <span>Cadastros</span>
                             <ChevronDown className={`ml-auto h-4 w-4 transition-transform ${isCadastrosOpen ? 'rotate-180' : ''}`} />
@@ -115,6 +115,19 @@ export function NavMain({ items = [] }: { items: NavItem[] }) {
                         </SidebarGroupContent>
                     </CollapsibleContent>
                 </Collapsible>
+            </SidebarGroup>
+
+            <SidebarGroup className="px-2 py-0">
+                <SidebarMenu>
+                    <SidebarMenuItem>
+                        <SidebarMenuButton asChild tooltip={{ children: 'Mensalidades' }} isActive={page.url.startsWith('/payments')}>
+                            <Link href="/payments" prefetch>
+                                <CircleDollarSign className="mr-2" />
+                                <span>Mensalidades</span>
+                            </Link>
+                        </SidebarMenuButton>
+                    </SidebarMenuItem>
+                </SidebarMenu>
             </SidebarGroup>
         </>
     );

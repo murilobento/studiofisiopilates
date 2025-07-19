@@ -17,7 +17,9 @@ class ViaCepService
         }
 
         try {
-            $response = Http::get($this->baseUrl . $cep . '/json/');
+            $response = Http::timeout(3)
+                ->retry(3, 500)
+                ->get($this->baseUrl . $cep . '/json/');
             
             if ($response->successful()) {
                 $data = $response->json();

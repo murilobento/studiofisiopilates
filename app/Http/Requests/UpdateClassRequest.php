@@ -7,9 +7,12 @@ use App\Services\ClassEnrollmentService;
 use Carbon\Carbon;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
+use App\Http\Requests\Traits\NormalizesDates;
 
 class UpdateClassRequest extends FormRequest
 {
+    use NormalizesDates;
+
     /**
      * Determine if the user is authorized to make this request.
      */
@@ -83,5 +86,13 @@ class UpdateClassRequest extends FormRequest
                 }
             }
         });
+    }
+
+    protected function prepareForValidation(): void
+    {
+        $this->dateTimeFields = ['start_time', 'end_time'];
+        $this->normalizeDates();
+
+        // nenhuma outra preparação específica por enquanto
     }
 } 

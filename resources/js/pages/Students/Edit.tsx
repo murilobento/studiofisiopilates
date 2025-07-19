@@ -12,10 +12,11 @@ import { Card, CardContent } from '@/components/ui/card';
 import InputError from '@/components/input-error';
 import CpfInput from '@/components/cpf-input';
 import CepInput from '@/components/cep-input-component';
-import { Save, ArrowLeft, Trash2 } from 'lucide-react';
+import { DatePicker } from '@/components/ui/date-picker';
+import { Save, ArrowLeft } from 'lucide-react';
 import { type BreadcrumbItem } from '@/types';
-import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import axios from 'axios';
+import { format } from 'date-fns';
 
 interface Plan {
     id: number;
@@ -52,6 +53,7 @@ interface Student {
     pilates_goals: string | null;
     physical_activity_history: string | null;
     general_notes: string | null;
+    birth_date: string | null;
 }
 
 interface StudentsEditProps extends PageProps {
@@ -87,6 +89,7 @@ const Edit: React.FC<StudentsEditProps> = ({ auth, student, plans, instructors, 
         custom_price: student.custom_price || '',
         status: student.status || 'ativo',
         instructor_id: student.instructor_id || '',
+        birth_date: student.birth_date || '',
         street: student.street || '',
         number: student.number || '',
         neighborhood: student.neighborhood || '',
@@ -198,6 +201,20 @@ const Edit: React.FC<StudentsEditProps> = ({ auth, student, plans, instructors, 
                                                 className="mt-1 block w-full"
                                             />
                                             <InputError className="mt-2" message={errors.cpf} />
+                                        </div>
+
+                                        <div>
+                                            <Label htmlFor="birth_date">Data de Nascimento</Label>
+                                            <DatePicker
+                                                value={data.birth_date ? new Date(data.birth_date) : undefined}
+                                                onChange={(date) => {
+                                                    const formattedDate = date ? format(date, 'yyyy-MM-dd') : '';
+                                                    setData('birth_date', formattedDate);
+                                                }}
+                                                placeholder="Selecione a data de nascimento"
+                                                className="mt-1"
+                                            />
+                                            <InputError className="mt-2" message={errors.birth_date} />
                                         </div>
 
                                         <div>
@@ -517,40 +534,6 @@ const Edit: React.FC<StudentsEditProps> = ({ auth, student, plans, instructors, 
                                         <Save className="h-4 w-4 mr-2" />
                                         {processing ? 'Salvando...' : 'Atualizar Aluno'}
                                     </Button>
-                                    <AlertDialog>
-                                        <AlertDialogTrigger asChild>
-                                            <Button
-                                                type="button"
-                                                variant="destructive"
-                                                size="sm"
-                                            >
-                                                <Trash2 className="h-4 w-4 mr-2" />
-                                                Excluir
-                                            </Button>
-                                        </AlertDialogTrigger>
-                                        <AlertDialogContent>
-                                            <AlertDialogHeader>
-                                                <AlertDialogTitle>Tem certeza?</AlertDialogTitle>
-                                                <AlertDialogDescription>
-                                                    Esta ação não pode ser desfeita. Isso excluirá permanentemente o aluno.
-                                                </AlertDialogDescription>
-                                            </AlertDialogHeader>
-                                            <AlertDialogFooter>
-                                                <AlertDialogAction onClick={() => reset()}>Cancelar</AlertDialogAction>
-                                                <AlertDialogAction onClick={() => {
-                                                    if (window.confirm('Tem certeza que deseja excluir este aluno?')) {
-                                                        router.delete(route('students.destroy', student.id), {
-                                                            preserveScroll: true,
-                                                            onError: (errors) => {
-                                                                console.error('Erro ao excluir aluno:', errors);
-                                                                alert('Erro ao excluir aluno.');
-                                                            },
-                                                         });
-                                                     }
-                                                 }}>Excluir</AlertDialogAction>
-                                             </AlertDialogFooter>
-                                         </AlertDialogContent>
-                                     </AlertDialog>
                                  </div>
                              </div>
                          </CardContent>

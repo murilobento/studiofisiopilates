@@ -2,14 +2,15 @@ import { type SharedData } from '@/types';
 import { Head, Link, usePage } from '@inertiajs/react';
 import { Phone, Mail, MapPin, MoveRight, Star, Heart, ShieldCheck, Users } from 'lucide-react';
 
-import heroBg from '../images/welcome/hero-bg.jpg';
-import aboutUs from '../images/welcome/about-us.jpg';
-import pilates from '../images/welcome/pilates.svg';
-import physiotherapy from '../images/welcome/physiotherapy.svg';
-import functional from '../images/welcome/functional.svg';
-import avatar1 from '../images/welcome/avatar1.png';
-import avatar2 from '../images/welcome/avatar2.png';
-import avatar3 from '../images/welcome/avatar3.png';
+// Placeholder images - replace with actual image URLs or use public folder images
+const heroBg = '/images/hero-bg.jpg';
+const aboutUs = '/images/about-us.jpg';
+const pilates = '/images/pilates.svg';
+const physiotherapy = '/images/physiotherapy.svg';
+const functional = '/images/functional.svg';
+const avatar1 = '/images/avatar1.png';
+const avatar2 = '/images/avatar2.png';
+const avatar3 = '/images/avatar3.png';
 
 const primaryColor = '#10B981'; // Emerald 500
 
