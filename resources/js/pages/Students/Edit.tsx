@@ -1,6 +1,6 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import AuthenticatedLayout from '@/layouts/app-layout';
-import { Head, useForm, router } from '@inertiajs/react';
+import { Head, useForm } from '@inertiajs/react';
 import { PageProps } from '@/types';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -8,14 +8,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Separator } from '@/components/ui/separator';
 import InputError from '@/components/input-error';
 import CpfInput from '@/components/cpf-input';
 import CepInput from '@/components/cep-input-component';
 import { DatePicker } from '@/components/ui/date-picker';
-import { Save, ArrowLeft } from 'lucide-react';
+import { Save, ArrowLeft, User, CreditCard, MapPin, Heart, Edit } from 'lucide-react';
 import { type BreadcrumbItem } from '@/types';
-import axios from 'axios';
 import { format } from 'date-fns';
 
 interface Plan {
@@ -65,7 +65,7 @@ interface StudentsEditProps extends PageProps {
     };
 }
 
-const Edit: React.FC<StudentsEditProps> = ({ auth, student, plans, instructors, can }) => {
+const EditStudent: React.FC<StudentsEditProps> = ({ auth, student, plans, instructors, can }) => {
     const breadcrumbs: BreadcrumbItem[] = [
         {
             title: 'Dashboard',
@@ -130,420 +130,453 @@ const Edit: React.FC<StudentsEditProps> = ({ auth, student, plans, instructors, 
     return (
         <AuthenticatedLayout breadcrumbs={breadcrumbs}>
             <Head title="Editar Aluno" />
-
-            <div className="flex h-full flex-1 flex-col gap-4 p-4 sm:gap-6 sm:p-6">
-                {/* Header */}
-                <div className="flex flex-col space-y-2">
-                    <h1 className="text-2xl font-bold tracking-tight">Editar Aluno</h1>
-                    <p className="text-muted-foreground">
-                        Atualize as informações do aluno
-                    </p>
+            <div className="flex h-full flex-1 flex-col gap-6 p-6">
+                {/* Header moderno */}
+                <div className="flex flex-col gap-2">
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-orange-500 to-red-600 flex items-center justify-center">
+                            <Edit className="h-5 w-5 text-white" />
+                        </div>
+                        <div>
+                            <h1 className="text-3xl font-bold tracking-tight">Editar Aluno</h1>
+                            <p className="text-muted-foreground">{student.name}</p>
+                        </div>
+                    </div>
+                    <div className="flex items-center justify-between">
+                        <div></div>
+                        <Button variant="outline" asChild>
+                            <a href="/students">
+                                <ArrowLeft className="h-4 w-4 mr-2" />
+                                Voltar
+                            </a>
+                        </Button>
+                    </div>
                 </div>
-                
-                <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                    <div className="p-6 text-gray-900">
-                            <form onSubmit={submit} className="mt-6 space-y-6">
-                                {/* Informações Básicas */}
-                                <div className="border-b pb-6">
-                                    <h4 className="text-lg font-medium text-gray-900 mb-4">Informações Básicas</h4>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        <div>
-                                            <Label htmlFor="name">Nome</Label>
-                                            <Input
-                                                id="name"
-                                                type="text"
-                                                name="name"
-                                                value={data.name}
-                                                className="mt-1 block w-full"
-                                                autoComplete="name"
-                                                autoFocus={true}
-                                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setData('name', e.target.value)}
-                                                required
-                                            />
-                                            <InputError className="mt-2" message={errors.name} />
-                                        </div>
 
-                                        <div>
-                                            <Label htmlFor="email">Email</Label>
-                                            <Input
-                                                id="email"
-                                                type="email"
-                                                name="email"
-                                                value={data.email}
-                                                className="mt-1 block w-full"
-                                                autoComplete="email"
-                                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setData('email', e.target.value)}
-                                                required
-                                            />
-                                            <InputError className="mt-2" message={errors.email} />
-                                        </div>
-
-                                        <div>
-                                            <Label htmlFor="phone">Telefone</Label>
-                                            <Input
-                                                id="phone"
-                                                type="text"
-                                                name="phone"
-                                                value={data.phone}
-                                                className="mt-1 block w-full"
-                                                autoComplete="phone"
-                                                onChange={(e) => setData('phone', maskPhone(e.target.value))}
-                                                maxLength={15}
-                                            />
-                                            <InputError className="mt-2" message={errors.phone} />
-                                        </div>
-
-                                        <div>
-                                            <Label htmlFor="cpf">CPF</Label>
-                                            <CpfInput
-                                                value={data.cpf}
-                                                onChange={(value: string) => setData('cpf', value)}
-                                                className="mt-1 block w-full"
-                                            />
-                                            <InputError className="mt-2" message={errors.cpf} />
-                                        </div>
-
-                                        <div>
-                                            <Label htmlFor="birth_date">Data de Nascimento</Label>
-                                            <DatePicker
-                                                value={data.birth_date ? new Date(data.birth_date) : undefined}
-                                                onChange={(date) => {
-                                                    const formattedDate = date ? format(date, 'yyyy-MM-dd') : '';
-                                                    setData('birth_date', formattedDate);
-                                                }}
-                                                placeholder="Selecione a data de nascimento"
-                                                className="mt-1"
-                                            />
-                                            <InputError className="mt-2" message={errors.birth_date} />
-                                        </div>
-
-                                        <div>
-                                            <Label htmlFor="gender">Gênero</Label>
-                                            <Select
-                                                onValueChange={(value) => setData('gender', value)}
-                                                value={data.gender}
-                                            >
-                                                <SelectTrigger className="w-full">
-                                                    <SelectValue placeholder="Selecione o gênero" />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    <SelectItem value="masculino">Masculino</SelectItem>
-                                                    <SelectItem value="feminino">Feminino</SelectItem>
-                                                    <SelectItem value="outro">Outro</SelectItem>
-                                                </SelectContent>
-                                            </Select>
-                                            <InputError className="mt-2" message={errors.gender} />
-                                        </div>
-
-                                        <div className="flex items-center space-x-2">
-                                            <Switch
-                                                id="status"
-                                                checked={data.status === 'ativo'}
-                                                onCheckedChange={(checked) => setData('status', checked ? 'ativo' : 'inativo')}
-                                            />
-                                            <Label htmlFor="status">Aluno Ativo</Label>
-                                        </div>
-                                        <InputError className="mt-2" message={errors.status} />
-                                    </div>
-                                </div>
-
-                                {/* Plano e Preço */}
-                                <div className="border-b pb-6">
-                                    <h4 className="text-lg font-medium text-gray-900 mb-4">Plano e Preço</h4>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        <div>
-                                            <Label htmlFor="plan_id">Plano</Label>
-                                            <Select
-                                                onValueChange={(value) => {
-                                                    setData('plan_id', parseInt(value));
-                                                    // Preencher automaticamente o preço do plano selecionado
-                                                    const selectedPlan = plans.find(plan => plan.id === parseInt(value));
-                                                    if (selectedPlan) {
-                                                        setData('custom_price', selectedPlan.price.toString());
-                                                    }
-                                                }}
-                                                value={data.plan_id.toString()}
-                                            >
-                                                <SelectTrigger className="w-full">
-                                                    <SelectValue placeholder="Selecione um plano" />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    {plans.map((plan) => (
-                                                        <SelectItem key={plan.id} value={String(plan.id)}>
-                                                            {plan.description} - R$ {plan.price.toFixed(2)}
-                                                        </SelectItem>
-                                                    ))}
-                                                </SelectContent>
-                                            </Select>
-                                            <InputError className="mt-2" message={errors.plan_id} />
-                                        </div>
-
-                                        <div>
-                                            <Label htmlFor="custom_price">Preço Personalizado (opcional)</Label>
-                                            <Input
-                                                id="custom_price"
-                                                type="number"
-                                                name="custom_price"
-                                                value={data.custom_price}
-                                                className="mt-1 block w-full"
-                                                autoComplete="custom_price"
-                                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setData('custom_price', e.target.value)}
-                                                step="0.01"
-                                            />
-                                            <InputError className="mt-2" message={errors.custom_price} />
-                                        </div>
-
-                                        {can.chooseInstructor && (
-                                            <div>
-                                                <Label htmlFor="instructor_id">Instrutor</Label>
-                                                <Select
-                                                    onValueChange={(value) => setData('instructor_id', value === "0" ? '' : value)}
-                                                    value={data.instructor_id ? data.instructor_id.toString() : "0"}
-                                                >
-                                                    <SelectTrigger className="w-full">
-                                                        <SelectValue placeholder="Selecione um instrutor" />
-                                                    </SelectTrigger>
-                                                    <SelectContent>
-                                                        <SelectItem value="0">Nenhum instrutor</SelectItem>
-                                                        {instructors.map((instructor) => (
-                                                            <SelectItem key={instructor.id} value={String(instructor.id)}>
-                                                                {instructor.name}
-                                                            </SelectItem>
-                                                        ))}
-                                                    </SelectContent>
-                                                </Select>
-                                                <InputError className="mt-2" message={errors.instructor_id} />
-                                            </div>
-                                        )}
-
-                                        {!can.chooseInstructor && student.instructor && (
-                                            <div>
-                                                <Label>Instrutor</Label>
-                                                <Input
-                                                    value={student.instructor.name}
-                                                    disabled
-                                                    className="bg-gray-50"
-                                                />
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
-
-                                {/* Endereço */}
-                                <div className="border-b pb-6">
-                                    <h4 className="text-lg font-medium text-gray-900 mb-4">Endereço</h4>
-                                    
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        <div>
-                                            <Label htmlFor="zip_code">CEP</Label>
-                                            <CepInput
-                                                value={data.zip_code}
-                                                onChange={(value: string) => setData('zip_code', value)}
-                                                onAddressFound={handleAddressFound}
-                                                className="mt-1 block w-full"
-                                            />
-                                            <InputError className="mt-2" message={errors.zip_code} />
-                                        </div>
-                                        
-                                        <div>
-                                            <Label htmlFor="street">Rua</Label>
-                                            <Input
-                                                id="street"
-                                                type="text"
-                                                name="street"
-                                                value={data.street}
-                                                className="mt-1 block w-full"
-                                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setData('street', e.target.value)}
-                                            />
-                                            <InputError className="mt-2" message={errors.street} />
-                                        </div>
-                                        
-                                        <div>
-                                            <Label htmlFor="number">Número</Label>
-                                            <Input
-                                                id="number"
-                                                type="text"
-                                                name="number"
-                                                value={data.number}
-                                                className="mt-1 block w-full"
-                                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setData('number', e.target.value)}
-                                            />
-                                            <InputError className="mt-2" message={errors.number} />
-                                        </div>
-                                        
-                                        <div>
-                                            <Label htmlFor="neighborhood">Bairro</Label>
-                                            <Input
-                                                id="neighborhood"
-                                                type="text"
-                                                name="neighborhood"
-                                                value={data.neighborhood}
-                                                className="mt-1 block w-full"
-                                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setData('neighborhood', e.target.value)}
-                                            />
-                                            <InputError className="mt-2" message={errors.neighborhood} />
-                                        </div>
-                                        
-                                        <div>
-                                            <Label htmlFor="city">Cidade</Label>
-                                            <Input
-                                                id="city"
-                                                type="text"
-                                                name="city"
-                                                value={data.city}
-                                                className="mt-1 block w-full"
-                                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setData('city', e.target.value)}
-                                            />
-                                            <InputError className="mt-2" message={errors.city} />
-                                        </div>
-                                        
-                                        <div>
-                                            <Label htmlFor="state">Estado</Label>
-                                            <Input
-                                                id="state"
-                                                type="text"
-                                                name="state"
-                                                value={data.state}
-                                                className="mt-1 block w-full"
-                                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setData('state', e.target.value)}
-                                            />
-                                            <InputError className="mt-2" message={errors.state} />
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Informações de Saúde */}
-                                <div className="border-b pb-6">
-                                    <h4 className="text-lg font-medium text-gray-900 mb-4">Informações de Saúde</h4>
-                                    <div className="space-y-4">
-                                        <div>
-                                            <Label htmlFor="medical_conditions">Condições Médicas</Label>
-                                            <Textarea
-                                                id="medical_conditions"
-                                                name="medical_conditions"
-                                                value={data.medical_conditions}
-                                                className="mt-1 block w-full"
-                                                rows={3}
-                                                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setData('medical_conditions', e.target.value)}
-                                                placeholder="Descreva condições médicas relevantes..."
-                                            />
-                                            <InputError className="mt-2" message={errors.medical_conditions} />
-                                        </div>
-
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                            <div>
-                                                <Label htmlFor="medications">Medicamentos</Label>
-                                                <Textarea
-                                                    id="medications"
-                                                    name="medications"
-                                                    value={data.medications}
-                                                    className="mt-1 block w-full"
-                                                    rows={3}
-                                                    onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setData('medications', e.target.value)}
-                                                    placeholder="Liste medicamentos em uso..."
-                                                />
-                                                <InputError className="mt-2" message={errors.medications} />
-                                            </div>
-
-                                            <div>
-                                                <Label htmlFor="allergies">Alergias</Label>
-                                                <Textarea
-                                                    id="allergies"
-                                                    name="allergies"
-                                                    value={data.allergies}
-                                                    className="mt-1 block w-full"
-                                                    rows={3}
-                                                    onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setData('allergies', e.target.value)}
-                                                    placeholder="Descreva alergias conhecidas..."
-                                                />
-                                                <InputError className="mt-2" message={errors.allergies} />
-                                            </div>
-                                        </div>
-
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                            <div>
-                                                <Label htmlFor="pilates_goals">Objetivos no Pilates</Label>
-                                                <Textarea
-                                                    id="pilates_goals"
-                                                    name="pilates_goals"
-                                                    value={data.pilates_goals}
-                                                    className="mt-1 block w-full"
-                                                    rows={3}
-                                                    onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setData('pilates_goals', e.target.value)}
-                                                    placeholder="Descreva os objetivos do aluno..."
-                                                />
-                                                <InputError className="mt-2" message={errors.pilates_goals} />
-                                            </div>
-
-                                            <div>
-                                                <Label htmlFor="physical_activity_history">Histórico de Atividade Física</Label>
-                                                <Textarea
-                                                    id="physical_activity_history"
-                                                    name="physical_activity_history"
-                                                    value={data.physical_activity_history}
-                                                    className="mt-1 block w-full"
-                                                    rows={3}
-                                                    onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setData('physical_activity_history', e.target.value)}
-                                                    placeholder="Descreva histórico de atividades físicas..."
-                                                />
-                                                <InputError className="mt-2" message={errors.physical_activity_history} />
-                                            </div>
-                                        </div>
-
-                                        <div>
-                                            <Label htmlFor="general_notes">Observações Gerais</Label>
-                                            <Textarea
-                                                id="general_notes"
-                                                name="general_notes"
-                                                value={data.general_notes}
-                                                className="mt-1 block w-full"
-                                                rows={3}
-                                                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setData('general_notes', e.target.value)}
-                                                placeholder="Observações adicionais..."
-                                            />
-                                            <InputError className="mt-2" message={errors.general_notes} />
-                                        </div>
-                                    </div>
-                                </div>
-
-                                                    {/* Botões de Ação */}
+                <form onSubmit={submit} className="space-y-6">
+                    {/* Informações Básicas */}
                     <Card>
-                        <CardContent className="pt-6">
-                            <div className="flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-center">
-                                <Button
-                                    type="button"
-                                    variant="outline"
-                                    asChild
-                                    size="sm"
-                                >
-                                    <a href="/students">
-                                        <ArrowLeft className="h-4 w-4 mr-2" />
-                                        Cancelar
-                                    </a>
-                                </Button>
-                                <div className="flex flex-col sm:flex-row gap-3">
-                                    <Button
-                                        type="button"
-                                        variant="outline"
-                                        onClick={() => reset()}
-                                        size="sm"
+                        <CardHeader>
+                            <div className="flex items-center gap-2">
+                                <User className="h-5 w-5 text-blue-600" />
+                                <CardTitle>Informações Básicas</CardTitle>
+                            </div>
+                            <CardDescription>
+                                Dados pessoais e de contato do aluno
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <Label htmlFor="name">Nome *</Label>
+                                    <Input
+                                        id="name"
+                                        type="text"
+                                        name="name"
+                                        value={data.name}
+                                        className="mt-1"
+                                        autoComplete="name"
+                                        autoFocus={true}
+                                        onChange={(e) => setData('name', e.target.value)}
+                                        required
+                                    />
+                                    <InputError className="mt-2" message={errors.name} />
+                                </div>
+
+                                <div>
+                                    <Label htmlFor="email">Email *</Label>
+                                    <Input
+                                        id="email"
+                                        type="email"
+                                        name="email"
+                                        value={data.email}
+                                        className="mt-1"
+                                        autoComplete="email"
+                                        onChange={(e) => setData('email', e.target.value)}
+                                        required
+                                    />
+                                    <InputError className="mt-2" message={errors.email} />
+                                </div>
+
+                                <div>
+                                    <Label htmlFor="phone">Telefone</Label>
+                                    <Input
+                                        id="phone"
+                                        type="text"
+                                        name="phone"
+                                        value={data.phone}
+                                        className="mt-1"
+                                        autoComplete="phone"
+                                        onChange={(e) => setData('phone', maskPhone(e.target.value))}
+                                        maxLength={15}
+                                        placeholder="(11) 99999-9999"
+                                    />
+                                    <InputError className="mt-2" message={errors.phone} />
+                                </div>
+
+                                <div>
+                                    <Label htmlFor="cpf">CPF</Label>
+                                    <CpfInput
+                                        value={data.cpf}
+                                        onChange={(value: string) => setData('cpf', value)}
+                                        className="mt-1"
+                                    />
+                                    <InputError className="mt-2" message={errors.cpf} />
+                                </div>
+
+                                <div>
+                                    <Label htmlFor="birth_date">Data de Nascimento</Label>
+                                    <DatePicker
+                                        value={data.birth_date ? new Date(data.birth_date) : undefined}
+                                        onChange={(date) => {
+                                            const formattedDate = date ? format(date, 'yyyy-MM-dd') : '';
+                                            setData('birth_date', formattedDate);
+                                        }}
+                                        placeholder="Selecione a data de nascimento"
+                                        className="mt-1"
+                                    />
+                                    <InputError className="mt-2" message={errors.birth_date} />
+                                </div>
+
+                                <div>
+                                    <Label htmlFor="gender">Gênero</Label>
+                                    <Select
+                                        onValueChange={(value) => setData('gender', value)}
+                                        value={data.gender}
                                     >
-                                        Desfazer
-                                    </Button>
-                                    <Button type="submit" disabled={processing} size="sm">
-                                        <Save className="h-4 w-4 mr-2" />
-                                        {processing ? 'Salvando...' : 'Atualizar Aluno'}
-                                    </Button>
-                                 </div>
-                             </div>
-                         </CardContent>
-                     </Card>
-                 </form>
-             </div>
-         </div>
-     </div>
- </AuthenticatedLayout>
- );
+                                        <SelectTrigger className="mt-1">
+                                            <SelectValue placeholder="Selecione o gênero" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="masculino">Masculino</SelectItem>
+                                            <SelectItem value="feminino">Feminino</SelectItem>
+                                            <SelectItem value="outro">Outro</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                    <InputError className="mt-2" message={errors.gender} />
+                                </div>
+                            </div>
+
+                            <Separator />
+
+                            <div className="flex items-center space-x-2">
+                                <Switch
+                                    id="status"
+                                    checked={data.status === 'ativo'}
+                                    onCheckedChange={(checked) => setData('status', checked ? 'ativo' : 'inativo')}
+                                />
+                                <Label htmlFor="status">Aluno Ativo</Label>
+                            </div>
+                            <InputError className="mt-2" message={errors.status} />
+                        </CardContent>
+                    </Card>
+
+                    {/* Plano e Preço */}
+                    <Card>
+                        <CardHeader>
+                            <div className="flex items-center gap-2">
+                                <CreditCard className="h-5 w-5 text-green-600" />
+                                <CardTitle>Plano e Preço</CardTitle>
+                            </div>
+                            <CardDescription>
+                                Configurações de plano e valores
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <Label htmlFor="plan_id">Plano</Label>
+                                    <Select
+                                        onValueChange={(value) => {
+                                            setData('plan_id', parseInt(value));
+                                            // Preencher automaticamente o preço do plano selecionado
+                                            const selectedPlan = plans.find(plan => plan.id === parseInt(value));
+                                            if (selectedPlan) {
+                                                setData('custom_price', selectedPlan.price.toString());
+                                            }
+                                        }}
+                                        value={data.plan_id.toString()}
+                                    >
+                                        <SelectTrigger className="mt-1">
+                                            <SelectValue placeholder="Selecione um plano" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {plans.map((plan) => (
+                                                <SelectItem key={plan.id} value={String(plan.id)}>
+                                                    {plan.description} - R$ {plan.price.toFixed(2)}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                    <InputError className="mt-2" message={errors.plan_id} />
+                                </div>
+
+                                <div>
+                                    <Label htmlFor="custom_price">Preço Personalizado</Label>
+                                    <Input
+                                        id="custom_price"
+                                        type="number"
+                                        name="custom_price"
+                                        value={data.custom_price}
+                                        className="mt-1"
+                                        autoComplete="custom_price"
+                                        onChange={(e) => setData('custom_price', e.target.value)}
+                                        step="0.01"
+                                        placeholder="0.00"
+                                    />
+                                    <p className="text-sm text-muted-foreground mt-1">
+                                        Pode ser alterado manualmente
+                                    </p>
+                                    <InputError className="mt-2" message={errors.custom_price} />
+                                </div>
+
+                                {can.chooseInstructor ? (
+                                    <div className="md:col-span-2">
+                                        <Label htmlFor="instructor_id">Instrutor</Label>
+                                        <Select
+                                            onValueChange={(value) => setData('instructor_id', value === "0" ? '' : value)}
+                                            value={data.instructor_id ? data.instructor_id.toString() : "0"}
+                                        >
+                                            <SelectTrigger className="mt-1">
+                                                <SelectValue placeholder="Selecione um instrutor" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="0">Nenhum instrutor</SelectItem>
+                                                {instructors.map((instructor) => (
+                                                    <SelectItem key={instructor.id} value={String(instructor.id)}>
+                                                        {instructor.name}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                        <InputError className="mt-2" message={errors.instructor_id} />
+                                    </div>
+                                ) : (
+                                    student.instructor && (
+                                        <div className="md:col-span-2">
+                                            <Label>Instrutor</Label>
+                                            <Input
+                                                value={student.instructor.name}
+                                                disabled
+                                                className="mt-1 bg-muted"
+                                            />
+                                        </div>
+                                    )
+                                )}
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    {/* Endereço */}
+                    <Card>
+                        <CardHeader>
+                            <div className="flex items-center gap-2">
+                                <MapPin className="h-5 w-5 text-orange-600" />
+                                <CardTitle>Endereço</CardTitle>
+                            </div>
+                            <CardDescription>
+                                Informações de endereço do aluno
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div>
+                                    <Label htmlFor="zip_code">CEP</Label>
+                                    <CepInput
+                                        value={data.zip_code}
+                                        onChange={(value: string) => setData('zip_code', value)}
+                                        onAddressFound={handleAddressFound}
+                                        className="mt-1"
+                                    />
+                                    <InputError className="mt-2" message={errors.zip_code} />
+                                </div>
+
+                                <div className="md:col-span-2">
+                                    <Label htmlFor="street">Rua</Label>
+                                    <Input
+                                        id="street"
+                                        type="text"
+                                        name="street"
+                                        value={data.street}
+                                        className="mt-1"
+                                        onChange={(e) => setData('street', e.target.value)}
+                                    />
+                                    <InputError className="mt-2" message={errors.street} />
+                                </div>
+
+                                <div>
+                                    <Label htmlFor="number">Número</Label>
+                                    <Input
+                                        id="number"
+                                        type="text"
+                                        name="number"
+                                        value={data.number}
+                                        className="mt-1"
+                                        onChange={(e) => setData('number', e.target.value)}
+                                    />
+                                    <InputError className="mt-2" message={errors.number} />
+                                </div>
+
+                                <div>
+                                    <Label htmlFor="neighborhood">Bairro</Label>
+                                    <Input
+                                        id="neighborhood"
+                                        type="text"
+                                        name="neighborhood"
+                                        value={data.neighborhood}
+                                        className="mt-1"
+                                        onChange={(e) => setData('neighborhood', e.target.value)}
+                                    />
+                                    <InputError className="mt-2" message={errors.neighborhood} />
+                                </div>
+
+                                <div>
+                                    <Label htmlFor="city">Cidade</Label>
+                                    <Input
+                                        id="city"
+                                        type="text"
+                                        name="city"
+                                        value={data.city}
+                                        className="mt-1"
+                                        onChange={(e) => setData('city', e.target.value)}
+                                    />
+                                    <InputError className="mt-2" message={errors.city} />
+                                </div>
+
+                                <div>
+                                    <Label htmlFor="state">Estado</Label>
+                                    <Input
+                                        id="state"
+                                        type="text"
+                                        name="state"
+                                        value={data.state}
+                                        className="mt-1"
+                                        onChange={(e) => setData('state', e.target.value)}
+                                        maxLength={2}
+                                        placeholder="SP"
+                                    />
+                                    <InputError className="mt-2" message={errors.state} />
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    {/* Informações de Saúde */}
+                    <Card>
+                        <CardHeader>
+                            <div className="flex items-center gap-2">
+                                <Heart className="h-5 w-5 text-red-600" />
+                                <CardTitle>Informações de Saúde</CardTitle>
+                            </div>
+                            <CardDescription>
+                                Histórico médico e objetivos do aluno
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            <div>
+                                <Label htmlFor="medical_conditions">Condições Médicas</Label>
+                                <Textarea
+                                    id="medical_conditions"
+                                    name="medical_conditions"
+                                    value={data.medical_conditions}
+                                    className="mt-1"
+                                    rows={3}
+                                    onChange={(e) => setData('medical_conditions', e.target.value)}
+                                    placeholder="Descreva condições médicas relevantes..."
+                                />
+                                <InputError className="mt-2" message={errors.medical_conditions} />
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <Label htmlFor="medications">Medicamentos</Label>
+                                    <Textarea
+                                        id="medications"
+                                        name="medications"
+                                        value={data.medications}
+                                        className="mt-1"
+                                        rows={3}
+                                        onChange={(e) => setData('medications', e.target.value)}
+                                        placeholder="Liste medicamentos em uso..."
+                                    />
+                                    <InputError className="mt-2" message={errors.medications} />
+                                </div>
+
+                                <div>
+                                    <Label htmlFor="allergies">Alergias</Label>
+                                    <Textarea
+                                        id="allergies"
+                                        name="allergies"
+                                        value={data.allergies}
+                                        className="mt-1"
+                                        rows={3}
+                                        onChange={(e) => setData('allergies', e.target.value)}
+                                        placeholder="Descreva alergias conhecidas..."
+                                    />
+                                    <InputError className="mt-2" message={errors.allergies} />
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <Label htmlFor="pilates_goals">Objetivos no Pilates</Label>
+                                    <Textarea
+                                        id="pilates_goals"
+                                        name="pilates_goals"
+                                        value={data.pilates_goals}
+                                        className="mt-1"
+                                        rows={3}
+                                        onChange={(e) => setData('pilates_goals', e.target.value)}
+                                        placeholder="Descreva os objetivos do aluno..."
+                                    />
+                                    <InputError className="mt-2" message={errors.pilates_goals} />
+                                </div>
+
+                                <div>
+                                    <Label htmlFor="physical_activity_history">Histórico de Atividade Física</Label>
+                                    <Textarea
+                                        id="physical_activity_history"
+                                        name="physical_activity_history"
+                                        value={data.physical_activity_history}
+                                        className="mt-1"
+                                        rows={3}
+                                        onChange={(e) => setData('physical_activity_history', e.target.value)}
+                                        placeholder="Descreva histórico de atividades físicas..."
+                                    />
+                                    <InputError className="mt-2" message={errors.physical_activity_history} />
+                                </div>
+                            </div>
+
+                            <div>
+                                <Label htmlFor="general_notes">Observações Gerais</Label>
+                                <Textarea
+                                    id="general_notes"
+                                    name="general_notes"
+                                    value={data.general_notes}
+                                    className="mt-1"
+                                    rows={3}
+                                    onChange={(e) => setData('general_notes', e.target.value)}
+                                    placeholder="Observações adicionais..."
+                                />
+                                <InputError className="mt-2" message={errors.general_notes} />
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    {/* Botões de Ação */}
+                    <div className="flex items-center justify-end gap-4 pt-6">
+                        <Button variant="outline" onClick={() => reset()}>
+                            Desfazer
+                        </Button>
+                        <Button type="submit" disabled={processing}>
+                            <Save className="h-4 w-4 mr-2" />
+                            {processing ? 'Salvando...' : 'Atualizar Aluno'}
+                        </Button>
+                    </div>
+                </form>
+            </div>
+        </AuthenticatedLayout>
+    );
 };
 
-export default Edit;
+export default EditStudent;

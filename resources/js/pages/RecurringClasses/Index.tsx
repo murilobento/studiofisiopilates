@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import AuthenticatedLayout from '@/layouts/app-layout';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { 
     AlertDialog, 
     AlertDialogAction, 
@@ -15,7 +15,7 @@ import {
     AlertDialogTitle, 
     AlertDialogTrigger 
 } from '@/components/ui/alert-dialog';
-import { Plus, Edit, Trash2 } from 'lucide-react';
+import { Plus, Edit, Trash2, Repeat, Clock, Users, CheckCircle, XCircle } from 'lucide-react';
 import SuccessAlert from '@/components/success-alert';
 import { PageProps } from '@/types';
 import { type BreadcrumbItem } from '@/types';
@@ -93,21 +93,26 @@ export default function Index({ recurringClasses, flash }: IndexProps) {
         <AuthenticatedLayout breadcrumbs={breadcrumbs}>
             <Head title="Aulas Recorrentes" />
 
-            <div className="flex h-full flex-1 flex-col gap-4 p-4 sm:gap-6 sm:p-6">
-                {/* Header */}
-                <div className="flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0">
-                    <div>
-                        <h1 className="text-2xl font-bold tracking-tight">Aulas Recorrentes</h1>
-                        <p className="text-muted-foreground">Gerencie as aulas que se repetem semanalmente</p>
+            <div className="flex h-full flex-1 flex-col gap-6 p-6">
+                {/* Header moderno */}
+                <div className="flex flex-col gap-2">
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
+                            <Repeat className="h-5 w-5 text-white" />
+                        </div>
+                        <div>
+                            <h1 className="text-3xl font-bold tracking-tight">Aulas Recorrentes</h1>
+                            <p className="text-muted-foreground">Gerencie as aulas que se repetem semanalmente</p>
+                        </div>
                     </div>
-                    <div className="flex items-center space-x-2">
-                        <Link
-                            href={route('recurring-classes.create')}
-                            className="inline-flex items-center px-4 py-2 bg-primary border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-primary/90 focus:bg-primary/90 active:bg-primary/95 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150"
-                        >
-                            <Plus className="h-4 w-4 mr-2" />
-                            Nova Aula Recorrente
-                        </Link>
+                    <div className="flex items-center justify-between">
+                        <div></div>
+                        <Button asChild>
+                            <Link href={route('recurring-classes.create')}>
+                                <Plus className="h-4 w-4 mr-2" />
+                                Nova Aula Recorrente
+                            </Link>
+                        </Button>
                     </div>
                 </div>
 
@@ -116,120 +121,177 @@ export default function Index({ recurringClasses, flash }: IndexProps) {
                     <SuccessAlert message={flash.success} />
                 )}
 
-                <div className="rounded-md border">
-                    <div className="overflow-x-auto">
-                        <table className="min-w-full divide-y divide-gray-200">
-                            <thead className="bg-gray-50">
-                                <tr>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Título
-                                    </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Dia da Semana
-                                    </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Horário
-                                    </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Instrutor
-                                    </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Status
-                                    </th>
-                                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Ações
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody className="bg-white divide-y divide-gray-200">
-                                {paginated.map((rc) => (
-                                    <tr key={rc.id} className="hover:bg-gray-50">
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="font-medium text-gray-900">{rc.title}</div>
-                                            <div className="text-sm text-gray-500">
-                                                {rc.max_students} alunos máx.
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                            {formatDayOfWeek(rc.day_of_week)}
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                            {rc.start_time.slice(0,5)} - {rc.end_time.slice(0,5)}
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                            {rc.instructor.name}
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <Badge variant={rc.is_active ? "default" : "secondary"}>
-                                                {rc.is_active ? 'Ativo' : 'Inativo'}
-                                            </Badge>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                            <div className="flex justify-end gap-2">
-                                                <Link
-                                                    href={route('recurring-classes.edit', rc.id)}
-                                                    className="inline-flex items-center px-2 py-1 text-xs font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                                                >
-                                                    <Edit className="h-3 w-3 mr-1" />
-                                                    Editar
-                                                </Link>
-                                                
-                                                <AlertDialog>
-                                                    <AlertDialogTrigger asChild>
-                                                        <Button
-                                                            variant="outline"
-                                                            size="sm"
-                                                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                                                        >
-                                                            <Trash2 className="h-3 w-3 mr-1" />
-                                                            Excluir
-                                                        </Button>
-                                                    </AlertDialogTrigger>
-                                                    <AlertDialogContent>
-                                                        <AlertDialogHeader>
-                                                            <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
-                                                            <AlertDialogDescription>
-                                                                Tem certeza que deseja excluir a aula recorrente "{rc.title}"?
-                                                                <br /><br />
-                                                                <strong>Esta ação irá:</strong>
-                                                                <ul className="list-disc list-inside mt-2 text-sm">
-                                                                    <li>Remover o molde da aula recorrente</li>
-                                                                    <li>Excluir todas as aulas agendadas desta recorrência</li>
-                                                                    <li>Manter apenas as aulas já concluídas ou canceladas</li>
-                                                                </ul>
-                                                                <br />
-                                                                Esta ação não pode ser desfeita.
-                                                            </AlertDialogDescription>
-                                                        </AlertDialogHeader>
-                                                        <AlertDialogFooter>
-                                                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                                            <AlertDialogAction
-                                                                onClick={() => handleDelete(rc.id)}
-                                                                className="bg-red-600 hover:bg-red-700"
-                                                            >
-                                                                Excluir
-                                                            </AlertDialogAction>
-                                                        </AlertDialogFooter>
-                                                    </AlertDialogContent>
-                                                </AlertDialog>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))}
-                                {filteredClasses.length === 0 && (
-                                    <tr>
-                                        <td colSpan={6} className="px-6 py-8 text-center text-gray-500">
-                                            {globalFilter 
-                                                ? 'Nenhuma aula recorrente encontrada para o filtro aplicado.'
-                                                : 'Nenhuma aula recorrente cadastrada.'
-                                            }
-                                        </td>
-                                    </tr>
-                                )}
-                            </tbody>
-                        </table>
-                    </div>
+                {/* Cards de Estatísticas */}
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                    <Card>
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-sm font-medium">Total</CardTitle>
+                            <Repeat className="h-4 w-4 text-muted-foreground" />
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-2xl font-bold">{recurringClasses.length}</div>
+                            <p className="text-xs text-muted-foreground">
+                                Aulas recorrentes cadastradas
+                            </p>
+                        </CardContent>
+                    </Card>
+                    
+                    <Card>
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-sm font-medium">Ativas</CardTitle>
+                            <CheckCircle className="h-4 w-4 text-green-600" />
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-2xl font-bold text-green-600">
+                                {recurringClasses.filter(rc => rc.is_active).length}
+                            </div>
+                            <p className="text-xs text-muted-foreground">
+                                Gerando aulas automaticamente
+                            </p>
+                        </CardContent>
+                    </Card>
+                    
+                    <Card>
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-sm font-medium">Inativas</CardTitle>
+                            <XCircle className="h-4 w-4 text-yellow-600" />
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-2xl font-bold text-yellow-600">
+                                {recurringClasses.filter(rc => !rc.is_active).length}
+                            </div>
+                            <p className="text-xs text-muted-foreground">
+                                Pausadas temporariamente
+                            </p>
+                        </CardContent>
+                    </Card>
+                    
+                    <Card>
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-sm font-medium">Capacidade</CardTitle>
+                            <Users className="h-4 w-4 text-blue-600" />
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-2xl font-bold text-blue-600">
+                                {recurringClasses.reduce((sum, rc) => sum + rc.max_students, 0)}
+                            </div>
+                            <p className="text-xs text-muted-foreground">
+                                Total de vagas por semana
+                            </p>
+                        </CardContent>
+                    </Card>
                 </div>
+
+                {/* Lista de Aulas Recorrentes */}
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Lista de Aulas Recorrentes</CardTitle>
+                        <CardDescription>
+                            Visualize e gerencie todas as aulas recorrentes do sistema
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="rounded-md border">
+                            <div className="overflow-x-auto">
+                                <table className="w-full">
+                                    <thead>
+                                        <tr className="border-b">
+                                            <th className="text-left p-4 font-medium">Título</th>
+                                            <th className="text-left p-4 font-medium">Dia da Semana</th>
+                                            <th className="text-left p-4 font-medium">Horário</th>
+                                            <th className="text-left p-4 font-medium">Instrutor</th>
+                                            <th className="text-left p-4 font-medium">Status</th>
+                                            <th className="text-left p-4 font-medium">Ações</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {paginated.map((rc) => (
+                                            <tr key={rc.id} className="border-b hover:bg-muted/50">
+                                                <td className="p-4">
+                                                    <div className="font-medium">{rc.title}</div>
+                                                    <div className="text-sm text-muted-foreground flex items-center gap-1">
+                                                        <Users className="h-3 w-3" />
+                                                        {rc.max_students} alunos máx.
+                                                    </div>
+                                                </td>
+                                                <td className="p-4 text-sm">{formatDayOfWeek(rc.day_of_week)}</td>
+                                                <td className="p-4">
+                                                    <div className="flex items-center gap-1 text-sm">
+                                                        <Clock className="h-3 w-3 text-muted-foreground" />
+                                                        {rc.start_time.slice(0,5)} - {rc.end_time.slice(0,5)}
+                                                    </div>
+                                                </td>
+                                                <td className="p-4 text-sm">{rc.instructor.name}</td>
+                                                <td className="p-4">
+                                                    <Badge variant={rc.is_active ? "default" : "secondary"}>
+                                                        {rc.is_active ? 'Ativo' : 'Inativo'}
+                                                    </Badge>
+                                                </td>
+                                                <td className="p-4">
+                                                    <div className="flex items-center gap-2">
+                                                        <Button variant="ghost" size="sm" asChild>
+                                                            <Link href={route('recurring-classes.edit', rc.id)}>
+                                                                <Edit className="h-4 w-4" />
+                                                            </Link>
+                                                        </Button>
+                                                        
+                                                        <AlertDialog>
+                                                            <AlertDialogTrigger asChild>
+                                                                <Button
+                                                                    variant="ghost"
+                                                                    size="sm"
+                                                                    className="text-red-600 hover:text-red-900"
+                                                                >
+                                                                    <Trash2 className="h-4 w-4" />
+                                                                </Button>
+                                                            </AlertDialogTrigger>
+                                                            <AlertDialogContent>
+                                                                <AlertDialogHeader>
+                                                                    <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+                                                                    <AlertDialogDescription>
+                                                                        Tem certeza que deseja excluir a aula recorrente "{rc.title}"?
+                                                                        <br /><br />
+                                                                        <strong>Esta ação irá:</strong>
+                                                                        <ul className="list-disc list-inside mt-2 text-sm">
+                                                                            <li>Remover o molde da aula recorrente</li>
+                                                                            <li>Excluir todas as aulas agendadas desta recorrência</li>
+                                                                            <li>Manter apenas as aulas já concluídas ou canceladas</li>
+                                                                        </ul>
+                                                                        <br />
+                                                                        Esta ação não pode ser desfeita.
+                                                                    </AlertDialogDescription>
+                                                                </AlertDialogHeader>
+                                                                <AlertDialogFooter>
+                                                                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                                                    <AlertDialogAction
+                                                                        onClick={() => handleDelete(rc.id)}
+                                                                        className="bg-red-600 hover:bg-red-700"
+                                                                    >
+                                                                        Excluir
+                                                                    </AlertDialogAction>
+                                                                </AlertDialogFooter>
+                                                            </AlertDialogContent>
+                                                        </AlertDialog>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                        {filteredClasses.length === 0 && (
+                                            <tr>
+                                                <td colSpan={6} className="px-6 py-8 text-center text-muted-foreground">
+                                                    {globalFilter 
+                                                        ? 'Nenhuma aula recorrente encontrada para o filtro aplicado.'
+                                                        : 'Nenhuma aula recorrente cadastrada.'
+                                                    }
+                                                </td>
+                                            </tr>
+                                        )}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
 
                 <Pagination 
                     type="client" 

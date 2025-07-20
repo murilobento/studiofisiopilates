@@ -352,9 +352,16 @@ class PaymentService
     /**
      * Calcula estatísticas de pagamento para dashboard
      */
-    public function getDashboardStats(): array
+    public function getDashboardStats(?int $instructorId = null): array
     {
-        $allPayments = MonthlyPayment::all();
+        $query = MonthlyPayment::query();
+        
+        // Filtrar por instrutor se especificado
+        if ($instructorId) {
+            $query->where('instructor_id', $instructorId);
+        }
+        
+        $allPayments = $query->get();
         
         $totalPending = $allPayments->where('status', 'pending')->count();
         $totalPaid = $allPayments->where('status', 'paid')->count();

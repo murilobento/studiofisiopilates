@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import AuthenticatedLayout from '@/layouts/app-layout';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import { PageProps } from '@/types';
@@ -28,7 +28,7 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger 
 } from '@/components/ui/dropdown-menu';
-import { MoreHorizontal, Plus, Eye, Edit, Trash2, UserCheck, UserX, Search, Filter, ChevronLeft, ChevronRight, Users, Shield, GraduationCap, UserCog } from 'lucide-react';
+import { MoreHorizontal, Plus, Eye, Edit, Trash2, UserCheck, UserX, Search, Users, Shield, GraduationCap, UserPlus, Palette } from 'lucide-react';
 import SuccessAlert from '@/components/success-alert';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import {
@@ -44,6 +44,16 @@ import {
 } from '@/components/ui/alert-dialog';
 import { type BreadcrumbItem } from '@/types';
 import { Pagination } from '@/components/ui/pagination';
+import { ColorPicker } from '@/components/ui/color-picker';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from '@/components/ui/dialog';
 
 interface Instructor {
     id: number;
@@ -55,6 +65,7 @@ interface Instructor {
     created_at: string;
     students_count: number;
     classes_count: number;
+    calendar_color?: string;
 }
 
 interface PaginationLink {
@@ -88,6 +99,9 @@ const Index: React.FC<UsersIndexProps> = ({ auth, users, filters }) => {
     const [search, setSearch] = useState(filters.search || '');
     const [roleFilter, setRoleFilter] = useState(filters.role || 'all');
     const [statusFilter, setStatusFilter] = useState(filters.status || 'all');
+    const [colorDialogOpen, setColorDialogOpen] = useState(false);
+    const [selectedUser, setSelectedUser] = useState<Instructor | null>(null);
+    const [selectedColor, setSelectedColor] = useState('#3b82f6');
 
     // Debounce search
     useEffect(() => {
@@ -131,6 +145,37 @@ const Index: React.FC<UsersIndexProps> = ({ auth, users, filters }) => {
         }
     };
 
+    const handleColorChange = (user: Instructor) => {
+        setSelectedUser(user);
+        setSelectedColor(user.calendar_color || '#3b82f6');
+        setColorDialogOpen(true);
+    };
+
+    const handleUpdateCalendarColor = async () => {
+        if (!selectedUser) return;
+
+        try {
+            await fetch(`/users/${selectedUser.id}/calendar-color`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+                },
+                body: JSON.stringify({
+                    calendar_color: selectedColor,
+                }),
+            });
+
+            setColorDialogOpen(false);
+            setSelectedUser(null);
+            
+            // Recarregar a página para atualizar os dados
+            router.reload();
+        } catch (error) {
+            console.error('Erro ao atualizar cor do calendário:', error);
+        }
+    };
+
     // Calcular estatísticas
     const totalUsers = users.total;
     const activeUsers = users.data.filter(user => user.is_active).length;
@@ -142,24 +187,28 @@ const Index: React.FC<UsersIndexProps> = ({ auth, users, filters }) => {
         <AuthenticatedLayout breadcrumbs={breadcrumbs}>
             <Head title="Usuários" />
 
-            <div className="flex h-full flex-1 flex-col gap-4 p-4 sm:gap-6 sm:p-6">
-                    {/* Header */}
-                    <div className="flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0">
-                        <div>
-                            <h1 className="text-2xl font-bold tracking-tight">Usuários</h1>
-                            <p className="text-muted-foreground">
-                                Gerencie administradores e instrutores do sistema
-                            </p>
+            <div className="flex h-full flex-1 flex-col gap-6 p-6">
+                {/* Header moderno */}
+                <div className="flex flex-col gap-2">
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center">
+                            <UserPlus className="h-5 w-5 text-white" />
                         </div>
-                        <div className="flex items-center space-x-2">
-                            <Link href="/users/create">
-                                <Button className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2">
-                                    <Plus className="h-4 w-4 mr-2" />
-                                    Novo Usuário
-                                </Button>
-                            </Link>
+                        <div>
+                            <h1 className="text-3xl font-bold tracking-tight">Usuários</h1>
+                            <p className="text-muted-foreground">Gerencie administradores e instrutores do sistema</p>
                         </div>
                     </div>
+                    <div className="flex items-center justify-between">
+                        <div></div>
+                        <Button asChild>
+                            <Link href="/users/create">
+                                <Plus className="h-4 w-4 mr-2" />
+                                Novo Usuário
+                            </Link>
+                        </Button>
+                    </div>
+                </div>
 
                     {/* Alertas */}
                     {props.flash?.success && (
@@ -313,6 +362,7 @@ const Index: React.FC<UsersIndexProps> = ({ auth, users, filters }) => {
                                             <TableHead>Email</TableHead>
                                             <TableHead>Função</TableHead>
                                             <TableHead>Status</TableHead>
+                                            <TableHead>Cor do Calendário</TableHead>
                                             <TableHead>Alunos</TableHead>
                                             <TableHead>Aulas</TableHead>
                                             <TableHead>Ações</TableHead>
@@ -332,6 +382,17 @@ const Index: React.FC<UsersIndexProps> = ({ auth, users, filters }) => {
                                                     <Badge variant={user.is_active ? 'default' : 'destructive'}>
                                                         {user.is_active ? 'Ativo' : 'Inativo'}
                                                     </Badge>
+                                                </TableCell>
+                                                <TableCell>
+                                                    <div className="flex items-center gap-2">
+                                                        <div
+                                                            className="w-6 h-6 rounded border border-gray-300"
+                                                            style={{ backgroundColor: user.calendar_color || '#3b82f6' }}
+                                                        />
+                                                        <span className="text-sm text-muted-foreground">
+                                                            {user.calendar_color || '#3b82f6'}
+                                                        </span>
+                                                    </div>
                                                 </TableCell>
                                                 <TableCell>{user.students_count}</TableCell>
                                                 <TableCell>{user.classes_count}</TableCell>
@@ -354,6 +415,11 @@ const Index: React.FC<UsersIndexProps> = ({ auth, users, filters }) => {
                                                                     <Edit className="h-4 w-4 mr-2" />
                                                                     Editar
                                                                 </Link>
+                                                            </DropdownMenuItem>
+                                                            <DropdownMenuSeparator />
+                                                            <DropdownMenuItem onClick={() => handleColorChange(user)}>
+                                                                <Palette className="h-4 w-4 mr-2" />
+                                                                Alterar Cor do Calendário
                                                             </DropdownMenuItem>
                                                             <DropdownMenuSeparator />
                                                             <DropdownMenuItem onClick={() => handleToggleStatus(user)}>
@@ -414,6 +480,47 @@ const Index: React.FC<UsersIndexProps> = ({ auth, users, filters }) => {
                             />
                         </CardContent>
                     </Card>
+
+                    {/* Diálogo para alterar cor do calendário */}
+                    <Dialog open={colorDialogOpen} onOpenChange={setColorDialogOpen}>
+                        <DialogContent>
+                            <DialogHeader>
+                                <DialogTitle>Alterar Cor do Calendário</DialogTitle>
+                                <DialogDescription>
+                                    Escolha uma cor para identificar as aulas de {selectedUser?.name} no calendário.
+                                </DialogDescription>
+                            </DialogHeader>
+                            
+                            <div className="py-4">
+                                <div className="flex flex-col space-y-4">
+                                    <div className="flex flex-col space-y-2">
+                                        <label className="text-sm font-medium">Cor do Calendário</label>
+                                        <ColorPicker
+                                            value={selectedColor}
+                                            onChange={setSelectedColor}
+                                        />
+                                    </div>
+                                    
+                                    <div className="flex items-center space-x-2 p-3 border rounded-lg bg-muted/50">
+                                        <div
+                                            className="w-4 h-4 rounded"
+                                            style={{ backgroundColor: selectedColor }}
+                                        />
+                                        <span className="text-sm">Prévia da cor selecionada</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <DialogFooter>
+                                <Button variant="outline" onClick={() => setColorDialogOpen(false)}>
+                                    Cancelar
+                                </Button>
+                                <Button onClick={handleUpdateCalendarColor}>
+                                    Salvar Cor
+                                </Button>
+                            </DialogFooter>
+                        </DialogContent>
+                    </Dialog>
             </div>
         </AuthenticatedLayout>
     );

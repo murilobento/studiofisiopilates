@@ -39,35 +39,46 @@ const handleSystemThemeChange = () => {
 };
 
 export function initializeTheme() {
-    const savedAppearance = (localStorage.getItem('appearance') as Appearance) || 'system';
+    // Força sempre o modo light - desabilita dark mode
+    const forcedAppearance = 'light';
+    
+    // Remove qualquer configuração anterior de tema
+    localStorage.setItem('appearance', forcedAppearance);
+    setCookie('appearance', forcedAppearance);
+    
+    applyTheme(forcedAppearance);
 
-    applyTheme(savedAppearance);
-
-    // Add the event listener for system theme changes...
-    mediaQuery()?.addEventListener('change', handleSystemThemeChange);
+    // Remove o listener de mudanças do sistema já que sempre usaremos light
+    // mediaQuery()?.addEventListener('change', handleSystemThemeChange);
 }
 
 export function useAppearance() {
-    const [appearance, setAppearance] = useState<Appearance>('system');
+    // Sempre retorna 'light' - dark mode desabilitado
+    const [appearance, setAppearance] = useState<Appearance>('light');
 
     const updateAppearance = useCallback((mode: Appearance) => {
-        setAppearance(mode);
-
-        // Store in localStorage for client-side persistence...
-        localStorage.setItem('appearance', mode);
-
-        // Store in cookie for SSR...
-        setCookie('appearance', mode);
-
-        applyTheme(mode);
+        // Ignora qualquer tentativa de mudança de tema - sempre mantém light
+        console.warn('Mudança de tema desabilitada. O sistema está configurado para usar apenas o modo light.');
+        
+        // Força sempre o modo light
+        const forcedMode = 'light';
+        setAppearance(forcedMode);
+        localStorage.setItem('appearance', forcedMode);
+        setCookie('appearance', forcedMode);
+        applyTheme(forcedMode);
     }, []);
 
     useEffect(() => {
-        const savedAppearance = localStorage.getItem('appearance') as Appearance | null;
-        updateAppearance(savedAppearance || 'system');
+        // Sempre força o modo light, ignorando qualquer configuração salva
+        const forcedMode = 'light';
+        setAppearance(forcedMode);
+        localStorage.setItem('appearance', forcedMode);
+        setCookie('appearance', forcedMode);
+        applyTheme(forcedMode);
 
-        return () => mediaQuery()?.removeEventListener('change', handleSystemThemeChange);
-    }, [updateAppearance]);
+        // Remove listener do sistema já que não usaremos
+        // return () => mediaQuery()?.removeEventListener('change', handleSystemThemeChange);
+    }, []);
 
     return { appearance, updateAppearance } as const;
 }

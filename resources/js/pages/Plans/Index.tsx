@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import AuthenticatedLayout from '@/layouts/app-layout';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { DataTable } from "@/components/ui/data-table";
@@ -6,7 +6,7 @@ import { columns, Plan } from "./components/columns";
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Plus, Search, Calendar, Users, Target, Filter } from 'lucide-react';
+import { Plus, Search, Calendar, Users, Target, Filter, CreditCard } from 'lucide-react';
 import { ColumnFiltersState, SortingState, VisibilityState, getCoreRowModel, getFilteredRowModel, getPaginationRowModel, getSortedRowModel, useReactTable } from "@tanstack/react-table";
 import SuccessAlert from '@/components/success-alert';
 import { PageProps } from '@/types';
@@ -84,25 +84,28 @@ const Index: React.FC<PlansIndexProps> = ({ auth, plans, flash }) => {
         <AuthenticatedLayout breadcrumbs={breadcrumbs}>
             <Head title="Planos" />
 
-            <div className="flex h-full flex-1 flex-col gap-4 p-4 sm:gap-6 sm:p-6">
-                    {/* Header */}
-                    <div className="flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0">
-                        <div>
-                            <h1 className="text-2xl font-bold tracking-tight">Planos</h1>
-                            <p className="text-muted-foreground">
-                                Gerencie todos os planos de aulas disponíveis
-                            </p>
+            <div className="flex h-full flex-1 flex-col gap-6 p-6">
+                {/* Header moderno */}
+                <div className="flex flex-col gap-2">
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center">
+                            <CreditCard className="h-5 w-5 text-white" />
                         </div>
-                        <div className="flex items-center space-x-2">
-                            <Link
-                                href={route('plans.create')}
-                                className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2"
-                            >
+                        <div>
+                            <h1 className="text-3xl font-bold tracking-tight">Planos</h1>
+                            <p className="text-muted-foreground">Gerencie todos os planos de aulas disponíveis</p>
+                        </div>
+                    </div>
+                    <div className="flex items-center justify-between">
+                        <div></div>
+                        <Button asChild>
+                            <Link href={route('plans.create')}>
                                 <Plus className="h-4 w-4 mr-2" />
                                 Novo Plano
                             </Link>
-                        </div>
+                        </Button>
                     </div>
+                </div>
 
                     {/* Alertas */}
                     {flash?.success && (

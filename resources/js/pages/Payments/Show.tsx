@@ -1,24 +1,26 @@
-import React from 'react';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import AppLayout from '@/layouts/app-layout';
+import AuthenticatedLayout from '@/layouts/app-layout';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
-import { 
-    ArrowLeft, 
-    DollarSign, 
-    Clock, 
-    AlertCircle, 
-    CheckCircle, 
-    CreditCard, 
-    User, 
+import {
+    ArrowLeft,
+    DollarSign,
+    Clock,
+    AlertCircle,
+    CheckCircle,
+    CreditCard,
+    User,
     Calendar,
-    FileText
+    FileText,
+    Receipt,
+    Eye
 } from 'lucide-react';
+import { type BreadcrumbItem } from '@/types';
 
 interface MonthlyPayment {
     id: number;
@@ -97,6 +99,21 @@ const paymentMethodConfig: Record<string, string> = {
 export default function PaymentShow() {
     const { payment } = usePage<PageProps>().props;
 
+    const breadcrumbs: BreadcrumbItem[] = [
+        {
+            title: 'Dashboard',
+            href: '/dashboard',
+        },
+        {
+            title: 'Pagamentos',
+            href: '/payments',
+        },
+        {
+            title: `Mensalidade #${payment.id}`,
+            href: `/payments/${payment.id}`,
+        },
+    ];
+
     const formatCurrency = (amount: number) => {
         return new Intl.NumberFormat('pt-BR', {
             style: 'currency',
@@ -134,13 +151,13 @@ export default function PaymentShow() {
     const handleCancelPayment = () => {
         router.post(route('payments.cancel', payment.id));
     };
-    
+
     const handleUndoPayment = () => {
         if (confirm('Tem certeza que deseja desfazer este pagamento? O status voltará para pendente.')) {
             router.post(route('payments.undo', payment.id));
         }
     };
-    
+
     const handleUndoCancel = () => {
         if (confirm('Tem certeza que deseja estornar este cancelamento? O status voltará para pendente.')) {
             router.post(route('payments.undo-cancel', payment.id));
@@ -151,54 +168,51 @@ export default function PaymentShow() {
     const StatusIcon = status.icon;
 
     return (
-        <AppLayout>
+        <AuthenticatedLayout breadcrumbs={breadcrumbs}>
             <Head title={`Mensalidade #${payment.id}`} />
-            
-            <div className="space-y-6">
-                {/* Header */}
-                <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                        <Button variant="ghost" size="sm" asChild>
-                            <Link href={route('payments.index')}>
-                                <ArrowLeft className="h-4 w-4 mr-2" />
-                                Voltar
-                            </Link>
-                        </Button>
+
+            <div className="flex h-full flex-1 flex-col gap-6 p-6">
+                {/* Header moderno */}
+                <div className="flex flex-col gap-2">
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center">
+                            <Eye className="h-5 w-5 text-white" />
+                        </div>
                         <div>
-                            <h1 className="text-2xl font-bold">Mensalidade #{payment.id}</h1>
+                            <h1 className="text-3xl font-bold tracking-tight">Mensalidade #{payment.id}</h1>
                             <p className="text-muted-foreground">
                                 {payment.student.name} - {formatMonth(payment.reference_month)}
                             </p>
                         </div>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center justify-between">
                         <Badge variant={status.variant} className="flex items-center gap-1">
                             <StatusIcon className="h-3 w-3" />
                             {status.label}
                         </Badge>
-                        {payment.status === 'pending' && (
+                        <div className="flex items-center gap-2">
                             <Button variant="outline" asChild>
                                 <Link href={route('payments.index')}>
-                                    <DollarSign className="h-4 w-4 mr-2" />
-                                    Voltar para Listagem
+                                    <ArrowLeft className="h-4 w-4 mr-2" />
+                                    Voltar
                                 </Link>
                             </Button>
-                        )}
-                        {payment.status === 'paid' && (
-                            <div className="flex gap-2">
-                                <Button variant="outline" onClick={handleUndoPayment}>
-                                    Desfazer Pagamento
+                            {payment.status === 'paid' && (
+                                <div className="flex gap-2">
+                                    <Button variant="outline" onClick={handleUndoPayment}>
+                                        Desfazer Pagamento
+                                    </Button>
+                                    <Button variant="outline" onClick={handleCancelPayment}>
+                                        Cancelar Pagamento
+                                    </Button>
+                                </div>
+                            )}
+                            {payment.status === 'cancelled' && (
+                                <Button variant="outline" onClick={handleUndoCancel}>
+                                    Estornar Cancelamento
                                 </Button>
-                                <Button variant="outline" onClick={handleCancelPayment}>
-                                    Cancelar Pagamento
-                                </Button>
-                            </div>
-                        )}
-                        {payment.status === 'cancelled' && (
-                            <Button variant="outline" onClick={handleUndoCancel}>
-                                Estornar Cancelamento
-                            </Button>
-                        )}
+                            )}
+                        </div>
                     </div>
                 </div>
 
@@ -333,6 +347,6 @@ export default function PaymentShow() {
                     </Card>
                 )}
             </div>
-        </AppLayout>
+        </AuthenticatedLayout>
     );
 } 

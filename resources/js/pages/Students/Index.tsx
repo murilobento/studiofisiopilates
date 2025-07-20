@@ -6,8 +6,8 @@ import { columns, Student } from "./components/columns";
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Plus, Search, Users, UserCheck, UserX, Filter } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Plus, Search, Users, UserCheck, UserX, Filter, GraduationCap } from 'lucide-react';
 import { ColumnFiltersState, SortingState, VisibilityState, getCoreRowModel, getFilteredRowModel, getSortedRowModel, useReactTable } from "@tanstack/react-table";
 import SuccessAlert from '@/components/success-alert';
 import { PageProps } from '@/types';
@@ -82,12 +82,12 @@ const Index: React.FC<StudentsIndexProps> = ({ auth, students, filters, flash })
 
     const handleFilterChange = (field: 'search' | 'status', value: string) => {
         setData(field, value);
-        
+
         // Auto-submit when status changes
         if (field === 'status') {
             router.get(route('students.index'), {
                 search: data.search,
-                status: value,
+                status: value === 'all' ? undefined : value,
             }, {
                 preserveState: true,
                 preserveScroll: true,
@@ -171,23 +171,26 @@ const Index: React.FC<StudentsIndexProps> = ({ auth, students, filters, flash })
         <AuthenticatedLayout breadcrumbs={breadcrumbs}>
             <Head title="Alunos" />
 
-            <div className="flex h-full flex-1 flex-col gap-4 p-4 sm:gap-6 sm:p-6">
-                {/* Header */}
-                <div className="flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0">
-                    <div>
-                        <h1 className="text-2xl font-bold tracking-tight">Alunos</h1>
-                        <p className="text-muted-foreground">
-                            Gerencie todos os alunos cadastrados no sistema
-                        </p>
+            <div className="flex h-full flex-1 flex-col gap-6 p-6">
+                {/* Header moderno */}
+                <div className="flex flex-col gap-2">
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center">
+                            <GraduationCap className="h-5 w-5 text-white" />
+                        </div>
+                        <div>
+                            <h1 className="text-3xl font-bold tracking-tight">Alunos</h1>
+                            <p className="text-muted-foreground">Gerencie todos os alunos cadastrados no sistema</p>
+                        </div>
                     </div>
-                    <div className="flex items-center space-x-2">
-                        <Link
-                            href={route('students.create')}
-                            className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2"
-                        >
-                            <Plus className="h-4 w-4 mr-2" />
-                            Novo Aluno
-                        </Link>
+                    <div className="flex items-center justify-between">
+                        <div></div>
+                        <Button asChild>
+                            <Link href={route('students.create')}>
+                                <Plus className="h-4 w-4 mr-2" />
+                                Novo Aluno
+                            </Link>
+                        </Button>
                     </div>
                 </div>
 
@@ -210,7 +213,7 @@ const Index: React.FC<StudentsIndexProps> = ({ auth, students, filters, flash })
                             </p>
                         </CardContent>
                     </Card>
-                    
+
                     <Card>
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                             <CardTitle className="text-sm font-medium">Alunos Ativos</CardTitle>
@@ -223,7 +226,7 @@ const Index: React.FC<StudentsIndexProps> = ({ auth, students, filters, flash })
                             </p>
                         </CardContent>
                     </Card>
-                    
+
                     <Card>
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                             <CardTitle className="text-sm font-medium">Alunos Inativos</CardTitle>
@@ -236,7 +239,7 @@ const Index: React.FC<StudentsIndexProps> = ({ auth, students, filters, flash })
                             </p>
                         </CardContent>
                     </Card>
-                    
+
                     <Card>
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                             <CardTitle className="text-sm font-medium">Exibindo</CardTitle>
@@ -261,7 +264,7 @@ const Index: React.FC<StudentsIndexProps> = ({ auth, students, filters, flash })
                     </CardHeader>
                     <CardContent>
                         {/* Filtros */}
-                        <div className="flex items-center space-x-2 mb-4">
+                        <div className="flex flex-col sm:flex-row gap-4 mb-6">
                             <div className="relative flex-1 max-w-sm">
                                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                                 <Input
@@ -272,24 +275,31 @@ const Index: React.FC<StudentsIndexProps> = ({ auth, students, filters, flash })
                                     className="pl-10"
                                 />
                             </div>
-                            <Button variant="outline" size="sm" onClick={handleSearch}>
-                                <Search className="h-4 w-4 mr-2" />
-                                Buscar
-                            </Button>
-                            <select
-                                value={data.status}
-                                onChange={(e) => handleFilterChange('status', e.target.value)}
-                                className="px-3 py-2 border border-gray-300 rounded-md text-sm"
-                            >
-                                <option value="">Todos os status</option>
-                                <option value="ativo">Ativo</option>
-                                <option value="inativo">Inativo</option>
-                            </select>
-                            {(data.search || data.status) && (
-                                <Button variant="outline" size="sm" onClick={clearFilters}>
-                                    Limpar
+                            <div className="flex items-center gap-2">
+                                <Select
+                                    value={data.status || 'all'}
+                                    onValueChange={(value) => handleFilterChange('status', value)}
+                                >
+                                    <SelectTrigger className="w-[180px]">
+                                        <SelectValue placeholder="Todos os status" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="all">Todos os status</SelectItem>
+                                        <SelectItem value="ativo">Ativo</SelectItem>
+                                        <SelectItem value="inativo">Inativo</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                                <Button variant="outline" onClick={handleSearch}>
+                                    <Search className="h-4 w-4 mr-2" />
+                                    Buscar
                                 </Button>
-                            )}
+                                {(data.search || data.status) && (
+                                    <Button variant="outline" onClick={clearFilters}>
+                                        <Filter className="h-4 w-4 mr-2" />
+                                        Limpar
+                                    </Button>
+                                )}
+                            </div>
                         </div>
 
                         {/* Tabela */}
@@ -297,10 +307,10 @@ const Index: React.FC<StudentsIndexProps> = ({ auth, students, filters, flash })
                             <DataTable columns={tableColumns} data={students.data} table={table} />
                         </div>
 
-                        <Pagination 
-                            type="server" 
-                            data={students} 
-                            itemName="alunos" 
+                        <Pagination
+                            type="server"
+                            data={students}
+                            itemName="alunos"
                         />
                     </CardContent>
                 </Card>

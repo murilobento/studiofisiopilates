@@ -92,7 +92,8 @@ class PaymentController extends Controller
             : collect();
 
         // Estatísticas
-        $stats = $this->paymentService->getDashboardStats();
+        $instructorId = $user->role->value === 'instructor' ? $user->id : null;
+        $stats = $this->paymentService->getDashboardStats($instructorId);
 
         return Inertia::render('Payments/Index', [
             'payments' => $payments,

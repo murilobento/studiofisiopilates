@@ -23,7 +23,7 @@ class UserController extends Controller
     public function index(Request $request)
     {
         $query = User::whereIn('role', [UserRole::INSTRUCTOR, UserRole::ADMIN])
-            ->select('id', 'name', 'email', 'commission_rate', 'is_active', 'created_at', 'role')
+            ->select('id', 'name', 'email', 'commission_rate', 'is_active', 'created_at', 'role', 'calendar_color')
             ->withCount(['students', 'classes']);
 
         // Filtro de busca por nome ou email
@@ -214,5 +214,29 @@ class UserController extends Controller
         $status = $user->is_active ? 'ativado' : 'desativado';
 
         return back()->with('success', "Usuário {$status} com sucesso!");
+    }
+
+    /**
+     * Update user calendar color.
+     */
+    public function updateCalendarColor(Request $request, User $user)
+    {
+        // Verificar se é realmente um instrutor ou admin
+        if (!in_array($user->role, [UserRole::INSTRUCTOR, UserRole::ADMIN])) {
+            abort(404);
+        }
+
+        $request->validate([
+            'calendar_color' => 'required|string|regex:/^#[0-9A-Fa-f]{6}$/',
+        ]);
+
+        $user->update([
+            'calendar_color' => $request->calendar_color
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Cor do calendário atualizada com sucesso!'
+        ]);
     }
 } 

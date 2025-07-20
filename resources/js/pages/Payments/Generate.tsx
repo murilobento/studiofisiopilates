@@ -6,7 +6,22 @@ import AuthenticatedLayout from '@/layouts/app-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
-import { ArrowLeft, Calendar, Play, Info, AlertTriangle, Lock, Users, CheckCircle, AlertCircle } from 'lucide-react';
+import { Separator } from '@/components/ui/separator';
+import { 
+    ArrowLeft, 
+    Calendar, 
+    Play, 
+    Info, 
+    AlertTriangle, 
+    Lock, 
+    Users, 
+    CheckCircle, 
+    AlertCircle,
+    CreditCard,
+    DollarSign,
+    Clock,
+    Zap
+} from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import SuccessAlert from '@/components/success-alert';
 import { PageProps } from '@/types';
@@ -132,24 +147,39 @@ export default function PaymentsGenerate({ auth, flash, check_result }: Generate
         <AuthenticatedLayout breadcrumbs={breadcrumbs}>
             <Head title="Gerar Mensalidades" />
             
-            <div className="flex h-full flex-1 flex-col gap-4 p-4 sm:gap-6 sm:p-6">
-                {/* Header */}
-                <div className="flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0">
-                    <div>
-                        <h1 className="text-2xl font-bold tracking-tight">Gerar Mensalidades</h1>
-                        <p className="text-muted-foreground">
-                            Gere mensalidades para todos os alunos ativos do mês vigente
-                        </p>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                        <Button variant="outline" asChild>
-                            <Link href={route('payments.index')}>
-                                <ArrowLeft className="h-4 w-4 mr-2" />
-                                Voltar
-                            </Link>
-                        </Button>
+            <div className="flex h-full flex-1 flex-col gap-6 p-6">
+                {/* Header moderno */}
+                <div className="flex flex-col gap-2">
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
+                            <CreditCard className="h-5 w-5 text-white" />
+                        </div>
+                        <div>
+                            <h1 className="text-3xl font-bold tracking-tight">Gerar Mensalidades</h1>
+                            <p className="text-muted-foreground">
+                                Processe mensalidades para todos os alunos ativos
+                            </p>
+                        </div>
                     </div>
                 </div>
+
+                {/* Barra de ações */}
+                <Card>
+                    <CardContent className="p-4">
+                        <div className="flex flex-col sm:flex-row gap-3 sm:justify-between sm:items-center">
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                <Zap className="h-4 w-4" />
+                                <span>Geração Automática de Mensalidades</span>
+                            </div>
+                            <Button variant="outline" asChild>
+                                <Link href={route('payments.index')}>
+                                    <ArrowLeft className="h-4 w-4 mr-2" />
+                                    Voltar
+                                </Link>
+                            </Button>
+                        </div>
+                    </CardContent>
+                </Card>
 
                 {/* Alertas */}
                 {flash?.success && (

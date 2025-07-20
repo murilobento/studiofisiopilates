@@ -1,15 +1,27 @@
 import React from 'react';
 import AuthenticatedLayout from '@/layouts/app-layout';
-import { Head, useForm } from '@inertiajs/react';
+import { Head, useForm, Link } from '@inertiajs/react';
 import { PageProps } from '@/types';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Separator } from '@/components/ui/separator';
 import InputError from '@/components/input-error';
 import CpfInput from '@/components/cpf-input';
-import { Save, ArrowLeft } from 'lucide-react';
+import { 
+    Save, 
+    ArrowLeft, 
+    UserPlus, 
+    User, 
+    Mail, 
+    Phone, 
+    CreditCard, 
+    Lock,
+    Info,
+    RefreshCw
+} from 'lucide-react';
 import { type BreadcrumbItem } from '@/types';
 
 interface UsersCreateProps extends PageProps {
@@ -69,21 +81,36 @@ const Create: React.FC<UsersCreateProps> = ({ auth }) => {
         <AuthenticatedLayout breadcrumbs={breadcrumbs}>
             <Head title="Novo Usuário" />
 
-            <div className="flex h-full flex-1 flex-col gap-4 p-4 sm:gap-6 sm:p-6">
-                {/* Header */}
-                <div className="flex flex-col space-y-2">
-                    <h1 className="text-2xl font-bold tracking-tight">Novo Usuário</h1>
-                    <p className="text-muted-foreground">
-                        Cadastre um novo usuário no sistema (instrutor por padrão)
-                    </p>
+            <div className="flex h-full flex-1 flex-col gap-6 p-6">
+                {/* Header moderno */}
+                <div className="flex flex-col gap-2">
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-green-500 to-blue-600 flex items-center justify-center">
+                            <UserPlus className="h-5 w-5 text-white" />
+                        </div>
+                        <div>
+                            <h1 className="text-3xl font-bold tracking-tight">Novo Usuário</h1>
+                            <p className="text-muted-foreground">
+                                Cadastre um novo instrutor no sistema
+                            </p>
+                        </div>
+                    </div>
                 </div>
 
                 <form onSubmit={submit} className="space-y-6">
                     {/* Informações Básicas */}
-                    <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                        <div className="p-6 text-gray-900">
-                            <h4 className="text-lg font-medium text-gray-900 mb-4">Informações Básicas</h4>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <Card>
+                        <CardHeader>
+                            <div className="flex items-center gap-2">
+                                <User className="h-5 w-5 text-muted-foreground" />
+                                <CardTitle>Informações Pessoais</CardTitle>
+                            </div>
+                            <CardDescription>
+                                Dados básicos do novo instrutor
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div>
                                     <Label htmlFor="name">Nome *</Label>
                                     <Input
@@ -172,14 +199,22 @@ const Create: React.FC<UsersCreateProps> = ({ auth }) => {
                                 </div>
                                 <InputError className="mt-2" message={errors.is_active} />
                             </div>
-                        </div>
-                    </div>
+                        </CardContent>
+                    </Card>
 
                     {/* Informações de Acesso */}
-                    <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                        <div className="p-6 text-gray-900">
-                            <h4 className="text-lg font-medium text-gray-900 mb-4">Informações de Acesso</h4>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <Card>
+                        <CardHeader>
+                            <div className="flex items-center gap-2">
+                                <Lock className="h-5 w-5 text-muted-foreground" />
+                                <CardTitle>Informações de Acesso</CardTitle>
+                            </div>
+                            <CardDescription>
+                                Credenciais para login no sistema
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-6">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div>
                                     <Label htmlFor="password">Senha *</Label>
                                     <Input
@@ -210,9 +245,13 @@ const Create: React.FC<UsersCreateProps> = ({ auth }) => {
                                     <InputError className="mt-2" message={errors.password_confirmation} />
                                 </div>
                             </div>
-                            <div className="mt-4">
-                                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                                    <h5 className="text-sm font-medium text-blue-900 mb-2">Informações importantes:</h5>
+                            
+                            <Separator />
+                            
+                            <div className="flex items-start gap-3 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                                <Info className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
+                                <div>
+                                    <h5 className="font-medium text-blue-900 mb-2">Informações Importantes</h5>
                                     <ul className="text-sm text-blue-800 space-y-1">
                                         <li>• O email será usado para login no sistema</li>
                                         <li>• O email será automaticamente verificado</li>
@@ -221,8 +260,8 @@ const Create: React.FC<UsersCreateProps> = ({ auth }) => {
                                     </ul>
                                 </div>
                             </div>
-                        </div>
-                    </div>
+                        </CardContent>
+                    </Card>
 
                     {/* Botões de Ação */}
                     <Card>
@@ -232,23 +271,22 @@ const Create: React.FC<UsersCreateProps> = ({ auth }) => {
                                     type="button"
                                     variant="outline"
                                     asChild
-                                    size="sm"
                                 >
-                                    <a href="/users">
+                                    <Link href="/users">
                                         <ArrowLeft className="h-4 w-4 mr-2" />
-                                        Cancelar
-                                    </a>
+                                        Voltar
+                                    </Link>
                                 </Button>
                                 <div className="flex flex-col sm:flex-row gap-3">
                                     <Button
                                         type="button"
                                         variant="outline"
                                         onClick={() => reset()}
-                                        size="sm"
                                     >
+                                        <RefreshCw className="h-4 w-4 mr-2" />
                                         Limpar
                                     </Button>
-                                    <Button type="submit" disabled={processing} size="sm">
+                                    <Button type="submit" disabled={processing}>
                                         <Save className="h-4 w-4 mr-2" />
                                         {processing ? 'Salvando...' : 'Criar Instrutor'}
                                     </Button>

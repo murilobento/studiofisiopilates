@@ -28,6 +28,7 @@ class User extends Authenticatable
         'phone',
         'commission_rate',
         'is_active',
+        'calendar_color',
     ];
 
     /**

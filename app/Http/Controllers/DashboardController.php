@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Student;
 use App\Models\Plan;
+use App\Models\MonthlyPayment;
+use App\Enums\UserRole;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Inertia\Inertia;
@@ -13,19 +15,54 @@ class DashboardController extends Controller
 {
     public function index()
     {
-        // Cache dashboard metrics for 5 minutes
-        $stats = Cache::remember('dashboard_stats', 300, function () {
-            return [
-                'totalStudents' => Student::where('status', 'ativo')->count(),
-                'totalPlans' => Plan::count(),
-                'totalRevenue' => Student::where('status', 'ativo')->whereNotNull('custom_price')->sum('custom_price'),
-            ];
+        $user = auth()->user();
+        $isInstructor = $user->role === UserRole::INSTRUCTOR;
+        
+        // Cache dashboard metrics for 5 minutes (diferente para cada tipo de usuário)
+        $cacheKey = $isInstructor ? "dashboard_stats_instructor_{$user->id}" : 'dashboard_stats_admin';
+        
+        $stats = Cache::remember($cacheKey, 300, function () use ($isInstructor, $user) {
+            if ($isInstructor) {
+                // Instrutor vê apenas estatísticas dos seus próprios alunos
+                $totalStudents = Student::where('status', 'ativo')
+                    ->where('instructor_id', $user->id)
+                    ->count();
+
+                // Receita baseada em pagamentos reais, não custom_price
+                $totalRevenue = MonthlyPayment::where('instructor_id', $user->id)
+                    ->where('status', 'paid')
+                    ->sum('amount');
+
+                return [
+                    'totalStudents' => $totalStudents,
+                    'totalPlans' => Plan::count(), // Planos são visíveis para todos
+                    'totalRevenue' => (float) $totalRevenue,
+                ];
+            } else {
+                // Admin vê tudo
+                $totalStudents = Student::where('status', 'ativo')->count();
+                
+                // Receita baseada em pagamentos reais para admin também
+                $totalRevenue = MonthlyPayment::where('status', 'paid')->sum('amount');
+
+                return [
+                    'totalStudents' => $totalStudents,
+                    'totalPlans' => Plan::count(),
+                    'totalRevenue' => (float) $totalRevenue,
+                ];
+            }
         });
         
-        // Alunos por plano (apenas ativos)
-        $studentsByPlan = Student::select('plans.description', DB::raw('count(*) as total'))
+        // Alunos por plano (filtrado por instrutor se necessário)
+        $studentsByPlanQuery = Student::select('plans.description', DB::raw('count(*) as total'))
             ->join('plans', 'students.plan_id', '=', 'plans.id')
-            ->where('students.status', 'ativo')
+            ->where('students.status', 'ativo');
+            
+        if ($isInstructor) {
+            $studentsByPlanQuery->where('students.instructor_id', $user->id);
+        }
+        
+        $studentsByPlan = $studentsByPlanQuery
             ->groupBy('plans.id', 'plans.description')
             ->orderBy('total', 'desc')
             ->get();
@@ -37,10 +74,16 @@ class DashboardController extends Controller
             ]);
         }
 
-        // Alunos por cidade (apenas ativos)
-        $studentsByCity = Student::select('city', DB::raw('count(*) as total'))
+        // Alunos por cidade (filtrado por instrutor se necessário)
+        $studentsByCityQuery = Student::select('city', DB::raw('count(*) as total'))
             ->where('status', 'ativo')
-            ->whereNotNull('city')
+            ->whereNotNull('city');
+            
+        if ($isInstructor) {
+            $studentsByCityQuery->where('instructor_id', $user->id);
+        }
+        
+        $studentsByCity = $studentsByCityQuery
             ->groupBy('city')
             ->orderBy('total', 'desc')
             ->limit(5)
@@ -53,14 +96,20 @@ class DashboardController extends Controller
             ]);
         }
 
-        // Alunos por mês (últimos 6 meses, apenas ativos)
-        $studentsByMonth = Student::select(
+        // Alunos por mês (últimos 6 meses, filtrado por instrutor se necessário)
+        $studentsByMonthQuery = Student::select(
                 DB::raw('strftime("%Y-%m", created_at) as month'),
                 DB::raw('count(*) as total')
             )
             ->where('status', 'ativo')
             ->where('created_at', '>=', now()->subMonths(6))
-            ->whereNotNull('created_at')
+            ->whereNotNull('created_at');
+            
+        if ($isInstructor) {
+            $studentsByMonthQuery->where('instructor_id', $user->id);
+        }
+        
+        $studentsByMonth = $studentsByMonthQuery
             ->groupBy('month')
             ->orderBy('month')
             ->get();
@@ -72,12 +121,17 @@ class DashboardController extends Controller
             ]);
         }
 
-        // Planos mais populares (apenas alunos ativos)
-        $popularPlans = Plan::select('plans.description', 'plans.price', DB::raw('count(students.id) as student_count'))
-            ->leftJoin('students', function($join) {
+        // Planos mais populares (filtrado por instrutor se necessário)
+        $popularPlansQuery = Plan::select('plans.description', 'plans.price', DB::raw('count(students.id) as student_count'))
+            ->leftJoin('students', function($join) use ($isInstructor, $user) {
                 $join->on('plans.id', '=', 'students.plan_id')
                      ->where('students.status', '=', 'ativo');
-            })
+                if ($isInstructor) {
+                    $join->where('students.instructor_id', '=', $user->id);
+                }
+            });
+            
+        $popularPlans = $popularPlansQuery
             ->groupBy('plans.id', 'plans.description', 'plans.price')
             ->orderBy('student_count', 'desc')
             ->get();
@@ -89,12 +143,17 @@ class DashboardController extends Controller
             ]);
         }
 
-        // Alunos recentes (últimos 5, apenas ativos)
-        $recentStudents = Student::with('plan')
+        // Alunos recentes (últimos 5, filtrado por instrutor se necessário)
+        $recentStudentsQuery = Student::with('plan')
             ->where('status', 'ativo')
             ->orderBy('created_at', 'desc')
-            ->limit(5)
-            ->get(['id', 'name', 'email', 'plan_id', 'created_at']);
+            ->limit(5);
+
+        if ($isInstructor) {
+            $recentStudentsQuery->where('instructor_id', $user->id);
+        }
+
+        $recentStudents = $recentStudentsQuery->get(['id', 'name', 'email', 'plan_id', 'created_at']);
 
         // Se não há alunos recentes, criar dados vazios
         if ($recentStudents->isEmpty()) {

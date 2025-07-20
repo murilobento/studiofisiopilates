@@ -89,12 +89,11 @@ class ClassEnrollmentService
         $query = ClassModel::where('instructor_id', $instructorId)
             ->where('status', 'scheduled')
             ->where(function ($q) use ($startTime, $endTime) {
-                $q->whereBetween('start_time', [$startTime, $endTime])
-                  ->orWhereBetween('end_time', [$startTime, $endTime])
-                  ->orWhere(function ($q2) use ($startTime, $endTime) {
-                      $q2->where('start_time', '<=', $startTime)
-                         ->where('end_time', '>=', $endTime);
-                  });
+                // Duas aulas se sobrepõem se:
+                // - O início da nova aula é antes do fim da aula existente E
+                // - O fim da nova aula é depois do início da aula existente
+                $q->where('start_time', '<', $endTime)
+                  ->where('end_time', '>', $startTime);
             });
 
         if ($excludeClassId) {

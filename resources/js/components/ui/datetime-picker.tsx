@@ -42,7 +42,13 @@ export function DateTimePicker({
     if (selectedDate && time) {
       const [hours, minutes] = time.split(':')
       selectedDate.setHours(parseInt(hours), parseInt(minutes))
-      onChange?.(selectedDate.toISOString().slice(0, 16))
+      // Formatar para datetime-local sem conversão UTC
+      const year = selectedDate.getFullYear();
+      const month = String(selectedDate.getMonth() + 1).padStart(2, '0');
+      const day = String(selectedDate.getDate()).padStart(2, '0');
+      const hours24 = String(selectedDate.getHours()).padStart(2, '0');
+      const minutes24 = String(selectedDate.getMinutes()).padStart(2, '0');
+      onChange?.(`${year}-${month}-${day}T${hours24}:${minutes24}`)
     }
   }
 
@@ -52,7 +58,13 @@ export function DateTimePicker({
       const [hours, minutes] = newTime.split(':')
       const newDate = new Date(date)
       newDate.setHours(parseInt(hours), parseInt(minutes))
-      onChange?.(newDate.toISOString().slice(0, 16))
+      // Formatar para datetime-local sem conversão UTC
+      const year = newDate.getFullYear();
+      const month = String(newDate.getMonth() + 1).padStart(2, '0');
+      const day = String(newDate.getDate()).padStart(2, '0');
+      const hours24 = String(newDate.getHours()).padStart(2, '0');
+      const minutes24 = String(newDate.getMinutes()).padStart(2, '0');
+      onChange?.(`${year}-${month}-${day}T${hours24}:${minutes24}`)
     }
   }
 

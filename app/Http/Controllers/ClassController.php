@@ -276,7 +276,7 @@ class ClassController extends Controller
 
         $user = Auth::user();
         $instructors = $user->role === UserRole::ADMIN 
-            ? User::canBeInstructors()->active()->get(['id', 'name'])
+            ? User::canBeInstructors()->active()->get(['id', 'name', 'calendar_color'])
             : collect();
 
         return Inertia::render('Classes/Calendar', [

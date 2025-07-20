@@ -30,6 +30,7 @@ Route::middleware(['auth', 'verified', 'active', 'role:admin,instructor'])->grou
 Route::middleware(['auth', 'verified', 'active', 'role:admin'])->group(function () {
     Route::resource('users', \App\Http\Controllers\UserController::class);
     Route::patch('users/{user}/toggle-status', [\App\Http\Controllers\UserController::class, 'toggleStatus'])->name('users.toggle-status');
+    Route::patch('users/{user}/calendar-color', [\App\Http\Controllers\UserController::class, 'updateCalendarColor'])->name('users.update-calendar-color');
 });
 
 // Payments routes
