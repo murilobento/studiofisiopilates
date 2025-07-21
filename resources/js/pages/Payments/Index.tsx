@@ -12,7 +12,18 @@ import { DataTable } from '@/components/ui/data-table';
 import { Pagination } from '@/components/ui/pagination';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
-import { Eye, DollarSign, XCircle, CheckCircle, Plus, Filter, Search, AlertTriangle, Receipt } from 'lucide-react';
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+import { Eye, DollarSign, XCircle, CheckCircle, Plus, Filter, Search, AlertTriangle, Receipt, Undo2, RotateCcw } from 'lucide-react';
 import { type BreadcrumbItem } from '@/types';
 import { ColumnDef } from '@tanstack/react-table';
 import { Label } from '@/components/ui/label';
@@ -40,6 +51,7 @@ interface MonthlyPayment {
     amount: number;
     due_date: string;
     reference_month: string;
+    formatted_reference_month: string;
     paid_at: string | null;
     status: 'pending' | 'paid' | 'overdue' | 'cancelled';
     payment_method: string | null;
@@ -104,33 +116,38 @@ const statusConfig = {
         label: 'Pendente',
         variant: 'secondary' as const,
         icon: DollarSign,
-        color: 'text-yellow-600'
+        color: 'text-yellow-600',
+        className: 'bg-yellow-100 text-yellow-800 border-yellow-200'
     },
     paid: {
         label: 'Pago',
-        variant: 'default' as const,
+        variant: 'secondary' as const,
         icon: CheckCircle,
-        color: 'text-green-600'
+        color: 'text-green-600',
+        className: 'bg-green-100 text-green-800 border-green-200'
     },
     overdue: {
         label: 'Vencido',
-        variant: 'destructive' as const,
+        variant: 'secondary' as const,
         icon: XCircle,
-        color: 'text-red-600'
+        color: 'text-yellow-600',
+        className: 'bg-yellow-100 text-yellow-800 border-yellow-200'
     },
     cancelled: {
         label: 'Cancelado',
-        variant: 'outline' as const,
+        variant: 'destructive' as const,
         icon: XCircle,
-        color: 'text-gray-600'
+        color: 'text-red-600',
+        className: 'bg-red-100 text-red-800 border-red-200'
     }
 };
 
 const paymentMethodConfig: Record<string, string> = {
     cash: 'Dinheiro',
-    card: 'Cartão',
+    credit_card: 'Cartão de Crédito',
+    debit_card: 'Cartão de Débito',
     pix: 'PIX',
-    transfer: 'Transferência',
+    bank_transfer: 'Transferência Bancária',
     check: 'Cheque'
 };
 
@@ -153,6 +170,10 @@ export default function PaymentsIndex() {
     const [showPaymentDialog, setShowPaymentDialog] = useState(false);
     const [showCancelDialog, setShowCancelDialog] = useState(false);
     const [paymentToCancel, setPaymentToCancel] = useState<MonthlyPayment | null>(null);
+    const [showUndoPaymentDialog, setShowUndoPaymentDialog] = useState(false);
+    const [paymentToUndo, setPaymentToUndo] = useState<MonthlyPayment | null>(null);
+    const [showUndoCancelDialog, setShowUndoCancelDialog] = useState(false);
+    const [paymentToUndoCancel, setPaymentToUndoCancel] = useState<MonthlyPayment | null>(null);
     
     const { data, setData, post, processing, errors, reset } = useForm({
         payment_method: '',
@@ -239,6 +260,38 @@ export default function PaymentsIndex() {
         });
     };
 
+    const handleUndoPayment = (payment: MonthlyPayment) => {
+        setPaymentToUndo(payment);
+        setShowUndoPaymentDialog(true);
+    };
+
+    const confirmUndoPayment = () => {
+        if (paymentToUndo) {
+            router.post(route('payments.undo', paymentToUndo.id), {}, {
+                onSuccess: () => {
+                    setShowUndoPaymentDialog(false);
+                    setPaymentToUndo(null);
+                }
+            });
+        }
+    };
+
+    const handleUndoCancel = (payment: MonthlyPayment) => {
+        setPaymentToUndoCancel(payment);
+        setShowUndoCancelDialog(true);
+    };
+
+    const confirmUndoCancel = () => {
+        if (paymentToUndoCancel) {
+            router.post(route('payments.undo-cancel', paymentToUndoCancel.id), {}, {
+                onSuccess: () => {
+                    setShowUndoCancelDialog(false);
+                    setPaymentToUndoCancel(null);
+                }
+            });
+        }
+    };
+
     const columns: ColumnDef<MonthlyPayment>[] = [
         {
             accessorKey: 'student.name',
@@ -259,14 +312,9 @@ export default function PaymentsIndex() {
             header: 'Instrutor',
         },
         {
-            accessorKey: 'reference_month',
+            accessorKey: 'formatted_reference_month',
             header: 'Mês/Ano',
-            cell: ({ row }) => formatMonth(row.original.reference_month),
-        },
-        {
-            accessorKey: 'due_date',
-            header: 'Vencimento',
-            cell: ({ row }) => formatDate(row.original.due_date),
+            cell: ({ row }) => row.original.formatted_reference_month || '-',
         },
         {
             accessorKey: 'amount',
@@ -289,7 +337,10 @@ export default function PaymentsIndex() {
                 const status = statusConfig[row.original.status];
                 const Icon = status.icon;
                 return (
-                    <Badge variant={status.variant} className="flex items-center gap-1">
+                    <Badge 
+                        variant={status.variant} 
+                        className={`flex items-center gap-1 ${status.className}`}
+                    >
                         <Icon className="h-3 w-3" />
                         {status.label}
                     </Badge>
@@ -315,16 +366,19 @@ export default function PaymentsIndex() {
             id: 'actions',
             header: 'Ações',
             cell: ({ row }) => (
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1">
                     <Button
                         variant="ghost"
                         size="sm"
                         asChild
+                        title="Ver Detalhes"
                     >
                         <Link href={route('payments.show', row.original.id)}>
                             <Eye className="h-4 w-4" />
                         </Link>
                     </Button>
+                    
+                    {/* Ações para status pendente ou vencido */}
                     {(row.original.status === 'pending' || row.original.status === 'overdue') && (
                         <Button
                             variant="ghost"
@@ -335,14 +389,38 @@ export default function PaymentsIndex() {
                             <DollarSign className="h-4 w-4" />
                         </Button>
                     )}
+                    
+                    {/* Ações para status pago */}
                     {row.original.status === 'paid' && (
+                        <>
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleUndoPayment(row.original)}
+                                title="Estornar Pagamento"
+                            >
+                                <Undo2 className="h-4 w-4" />
+                            </Button>
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleCancelPayment(row.original)}
+                                title="Cancelar Pagamento"
+                            >
+                                <XCircle className="h-4 w-4" />
+                            </Button>
+                        </>
+                    )}
+                    
+                    {/* Ações para status cancelado */}
+                    {row.original.status === 'cancelled' && (
                         <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => handleCancelPayment(row.original)}
-                            title="Cancelar Pagamento"
+                            onClick={() => handleUndoCancel(row.original)}
+                            title="Estornar Cancelamento"
                         >
-                            <XCircle className="h-4 w-4" />
+                            <RotateCcw className="h-4 w-4" />
                         </Button>
                     )}
                 </div>
@@ -545,9 +623,10 @@ export default function PaymentsIndex() {
                                     <SelectContent>
                                         <SelectItem value="all">Todos</SelectItem>
                                         <SelectItem value="cash">Dinheiro</SelectItem>
-                                        <SelectItem value="card">Cartão</SelectItem>
+                                        <SelectItem value="credit_card">Cartão de Crédito</SelectItem>
+                                        <SelectItem value="debit_card">Cartão de Débito</SelectItem>
                                         <SelectItem value="pix">PIX</SelectItem>
-                                        <SelectItem value="transfer">Transferência</SelectItem>
+                                        <SelectItem value="bank_transfer">Transferência Bancária</SelectItem>
                                         <SelectItem value="check">Cheque</SelectItem>
                                     </SelectContent>
                                 </Select>
@@ -592,9 +671,10 @@ export default function PaymentsIndex() {
                                     </SelectTrigger>
                                     <SelectContent>
                                         <SelectItem value="cash">Dinheiro</SelectItem>
-                                        <SelectItem value="card">Cartão</SelectItem>
+                                        <SelectItem value="credit_card">Cartão de Crédito</SelectItem>
+                                        <SelectItem value="debit_card">Cartão de Débito</SelectItem>
                                         <SelectItem value="pix">PIX</SelectItem>
-                                        <SelectItem value="transfer">Transferência</SelectItem>
+                                        <SelectItem value="bank_transfer">Transferência Bancária</SelectItem>
                                         <SelectItem value="check">Cheque</SelectItem>
                                     </SelectContent>
                                 </Select>
@@ -680,6 +760,44 @@ export default function PaymentsIndex() {
                         </form>
                     </DialogContent>
                 </Dialog>
+
+                {/* AlertDialog para Estornar Pagamento */}
+                <AlertDialog open={showUndoPaymentDialog} onOpenChange={setShowUndoPaymentDialog}>
+                    <AlertDialogContent>
+                        <AlertDialogHeader>
+                            <AlertDialogTitle>Estornar Pagamento</AlertDialogTitle>
+                            <AlertDialogDescription>
+                                Tem certeza que deseja estornar este pagamento? O status voltará para pendente.
+                                Esta ação pode ser revertida posteriormente.
+                            </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                            <AlertDialogAction onClick={confirmUndoPayment}>
+                                Estornar Pagamento
+                            </AlertDialogAction>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                </AlertDialog>
+
+                {/* AlertDialog para Estornar Cancelamento */}
+                <AlertDialog open={showUndoCancelDialog} onOpenChange={setShowUndoCancelDialog}>
+                    <AlertDialogContent>
+                        <AlertDialogHeader>
+                            <AlertDialogTitle>Estornar Cancelamento</AlertDialogTitle>
+                            <AlertDialogDescription>
+                                Tem certeza que deseja estornar este cancelamento? O status voltará para pendente.
+                                Esta ação pode ser revertida posteriormente.
+                            </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                            <AlertDialogAction onClick={confirmUndoCancel}>
+                                Estornar Cancelamento
+                            </AlertDialogAction>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                </AlertDialog>
             </div>
         </AuthenticatedLayout>
     );

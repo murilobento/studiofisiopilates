@@ -92,7 +92,7 @@ const paymentMethodConfig: Record<string, string> = {
     credit_card: 'Cartão de Crédito',
     debit_card: 'Cartão de Débito',
     pix: 'PIX',
-    bank_transfer: 'Transferência',
+    bank_transfer: 'Transferência Bancária',
     check: 'Cheque'
 };
 
@@ -148,21 +148,7 @@ export default function PaymentShow() {
         }
     };
 
-    const handleCancelPayment = () => {
-        router.post(route('payments.cancel', payment.id));
-    };
-
-    const handleUndoPayment = () => {
-        if (confirm('Tem certeza que deseja desfazer este pagamento? O status voltará para pendente.')) {
-            router.post(route('payments.undo', payment.id));
-        }
-    };
-
-    const handleUndoCancel = () => {
-        if (confirm('Tem certeza que deseja estornar este cancelamento? O status voltará para pendente.')) {
-            router.post(route('payments.undo-cancel', payment.id));
-        }
-    };
+    // Funções de ação removidas - agora estão na listagem principal
 
     const status = statusConfig[payment.status];
     const StatusIcon = status.icon;
@@ -197,21 +183,6 @@ export default function PaymentShow() {
                                     Voltar
                                 </Link>
                             </Button>
-                            {payment.status === 'paid' && (
-                                <div className="flex gap-2">
-                                    <Button variant="outline" onClick={handleUndoPayment}>
-                                        Desfazer Pagamento
-                                    </Button>
-                                    <Button variant="outline" onClick={handleCancelPayment}>
-                                        Cancelar Pagamento
-                                    </Button>
-                                </div>
-                            )}
-                            {payment.status === 'cancelled' && (
-                                <Button variant="outline" onClick={handleUndoCancel}>
-                                    Estornar Cancelamento
-                                </Button>
-                            )}
                         </div>
                     </div>
                 </div>

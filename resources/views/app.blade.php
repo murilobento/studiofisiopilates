@@ -32,9 +32,20 @@
 
         <title inertia>{{ config('app.name', 'Laravel') }}</title>
 
+        <!-- Favicon moderno do Studio Fisiopilates -->
         <link rel="icon" href="/favicon.ico" sizes="any">
-        <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+        <link rel="icon" href="/favicon-32.png" type="image/png" sizes="32x32">
+        <link rel="icon" href="/favicon-64.png" type="image/png" sizes="64x64">
+        <link rel="icon" href="/favicon.png" type="image/png" sizes="128x128">
         <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+        
+        <!-- Meta tags para PWA e redes sociais -->
+        <meta name="theme-color" content="#4ECDC4">
+        <meta name="description" content="Studio Fisiopilates - Pilates clínico e fisioterapia em Regente Feijó, SP. Transformando vidas através do movimento consciente.">
+        <meta property="og:title" content="Studio Fisiopilates - Pilates & Fisioterapia">
+        <meta property="og:description" content="Descubra o equilíbrio perfeito entre corpo e mente. Tratamentos personalizados de pilates clínico e fisioterapia.">
+        <meta property="og:image" content="/apple-touch-icon.png">
+        <meta property="og:type" content="website">
 
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600" rel="stylesheet" />
