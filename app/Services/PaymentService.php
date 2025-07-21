@@ -135,6 +135,16 @@ class PaymentService
 
             $payment->markAsPaid($paymentMethod, $notes, $receiptNumber);
 
+            // Dispara o evento de pagamento confirmado
+            event(new \App\Events\PaymentConfirmed($payment));
+            
+            // Calcula comissão automaticamente e registra transação financeira
+            // Este código é mantido para compatibilidade, mas será substituído pelo listener
+            if (app()->has('App\Services\CommissionService') && app()->has('App\Services\FinancialService')) {
+                app('App\Services\CommissionService')->calculateCommission($payment);
+                app('App\Services\FinancialService')->recordPaymentTransaction($payment);
+            }
+
             DB::commit();
             return true;
         } catch (\Exception $e) {
